@@ -102,13 +102,51 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| CORE-01 | Phase 1: Core Types | Pending |
+| CORE-02 | Phase 1: Core Types | Pending |
+| CORE-03 | Phase 1: Core Types | Pending |
+| CORE-04 | Phase 1: Core Types | Pending |
+| CORE-05 | Phase 1: Core Types | Pending |
+| CORE-06 | Phase 1: Core Types | Pending |
+| CORE-07 | Phase 1: Core Types | Pending |
+| SCHM-01 | Phase 2: Schema Model | Pending |
+| SCHM-02 | Phase 2: Schema Model | Pending |
+| SCHM-05 | Phase 2: Schema Model | Pending |
+| SCHM-03 | Phase 3: Schema References | Pending |
+| SCHM-04 | Phase 3: Schema References | Pending |
+| SCHM-06 | Phase 3: Schema References | Pending |
+| READ-01 | Phase 4: JSON Byte Reader | Pending |
+| READ-02 | Phase 4: JSON Byte Reader | Pending |
+| READ-03 | Phase 4: JSON Byte Reader | Pending |
+| VALD-01 | Phase 5: Basic Validation | Pending |
+| VALD-02 | Phase 5: Basic Validation | Pending |
+| VALD-03 | Phase 5: Basic Validation | Pending |
+| VALD-04 | Phase 5: Basic Validation | Pending |
+| VALD-05 | Phase 5: Basic Validation | Pending |
+| VALD-17 | Phase 5: Basic Validation | Pending |
+| VALD-06 | Phase 6: Constraint Validation | Pending |
+| VALD-07 | Phase 6: Constraint Validation | Pending |
+| VALD-08 | Phase 6: Constraint Validation | Pending |
+| VALD-09 | Phase 7: Composition and Conditionals | Pending |
+| VALD-10 | Phase 7: Composition and Conditionals | Pending |
+| VALD-11 | Phase 7: Composition and Conditionals | Pending |
+| VALD-12 | Phase 8: Advanced Validation | Pending |
+| VALD-13 | Phase 8: Advanced Validation | Pending |
+| VALD-14 | Phase 8: Advanced Validation | Pending |
+| VALD-15 | Phase 8: Advanced Validation | Pending |
+| VALD-16 | Phase 8: Advanced Validation | Pending |
+| INTG-01 | Phase 9: Single-Pass Walker | Pending |
+| INTG-02 | Phase 9: Single-Pass Walker | Pending |
+| INTG-03 | Phase 9: Single-Pass Walker | Pending |
+| QUAL-01 | Phase 10: Quality and Packaging | Pending |
+| QUAL-02 | Phase 10: Quality and Packaging | Pending |
+| QUAL-03 | Phase 10: Quality and Packaging | Pending |
 
 **Coverage:**
 - v1 requirements: 33 total
-- Mapped to phases: 0
-- Unmapped: 33
+- Mapped to phases: 33
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after initial definition*
+*Last updated: 2026-03-08 after roadmap creation*
