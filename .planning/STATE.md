@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-08T22:19:45Z"
-last_activity: 2026-03-08 — Plan 01-02 executed (container types)
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-03-08T22:25:47Z"
+last_activity: 2026-03-08 — Plan 01-03 executed (ParseResult + dual API)
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 2
-  percent: 20
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+  percent: 30
 ---
 
 # Project State
@@ -25,29 +25,29 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 ## Current Position
 
-Phase: 1 of 10 (Core Types)
-Plan: 2 of 2 completed in current phase
+Phase: 1 of 10 (Core Types) -- COMPLETE
+Plan: 3 of 3 completed in current phase
 Status: Executing
-Last activity: 2026-03-08 — Plan 01-02 executed (container types)
+Last activity: 2026-03-08 — Plan 01-03 executed (ParseResult + dual API)
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 4.5 min
-- Total execution time: 0.15 hours
+- Total plans completed: 3
+- Average duration: 4 min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-core-types | 2 | 9 min | 4.5 min |
+| 01-core-types | 3 | 12 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (5 min)
-- Trend: stable
+- Last 5 plans: 01-01 (4 min), 01-02 (5 min), 01-03 (3 min)
+- Trend: stable/improving
 
 *Updated after each plan completion*
 
@@ -64,6 +64,9 @@ Recent decisions affecting current work:
 - OffsetTable.Count represents capacity (schema-determined), not populated entry count (01-02)
 - ErrorCollector uses int[1] count holder for mutable count in readonly struct (01-02)
 - ErrorCollector parameterless constructor is public (C# CS8958 requirement) (01-02)
+- ParseResult uses Dictionary<string, int> for name-to-ordinal mapping passed from schema (01-03)
+- ParseResult.Enumerator skips empty slots (HasValue == false) during foreach (01-03)
+- JsonContractSchema TryParse/Parse are stubs until Phase 9 (01-03)
 
 ### Pending Todos
 
@@ -77,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-08T22:19:45Z
-Stopped at: Completed 01-02-PLAN.md
-Resume file: .planning/phases/01-core-types/01-02-SUMMARY.md
+Last session: 2026-03-08T22:25:47Z
+Stopped at: Completed 01-03-PLAN.md
+Resume file: .planning/phases/01-core-types/01-03-SUMMARY.md
