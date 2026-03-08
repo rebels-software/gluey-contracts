@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-03-08T22:12:32Z"
-last_activity: 2026-03-08 — Plan 01-01 executed (leaf types)
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-03-08T22:19:45Z"
+last_activity: 2026-03-08 — Plan 01-02 executed (container types)
 progress:
   total_phases: 10
   completed_phases: 0
-  total_plans: 1
-  completed_plans: 1
-  percent: 10
+  total_plans: 2
+  completed_plans: 2
+  percent: 20
 ---
 
 # Project State
@@ -26,28 +26,28 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 Phase: 1 of 10 (Core Types)
-Plan: 1 of 1 completed in current phase
+Plan: 2 of 2 completed in current phase
 Status: Executing
-Last activity: 2026-03-08 — Plan 01-01 executed (leaf types)
+Last activity: 2026-03-08 — Plan 01-02 executed (container types)
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 4 min
-- Total execution time: 0.07 hours
+- Total plans completed: 2
+- Average duration: 4.5 min
+- Total execution time: 0.15 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-core-types | 1 | 4 min | 4 min |
+| 01-core-types | 2 | 9 min | 4.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min)
-- Trend: baseline
+- Last 5 plans: 01-01 (4 min), 01-02 (5 min)
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -61,6 +61,9 @@ Recent decisions affecting current work:
 - CORE-07 specifies: TryParse (bool + out) and Parse (returns nullable, never throws) -- NO Result<T> pattern
 - All core value types are readonly struct (ADR 8) -- no classes, no record structs, no ref structs
 - ParsedProperty offset/length points to content inside quotes -- contract with Phase 4 tokenizer (01-01)
+- OffsetTable.Count represents capacity (schema-determined), not populated entry count (01-02)
+- ErrorCollector uses int[1] count holder for mutable count in readonly struct (01-02)
+- ErrorCollector parameterless constructor is public (C# CS8958 requirement) (01-02)
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-08T22:12:32Z
-Stopped at: Completed 01-01-PLAN.md
-Resume file: .planning/phases/01-core-types/01-01-SUMMARY.md
+Last session: 2026-03-08T22:19:45Z
+Stopped at: Completed 01-02-PLAN.md
+Resume file: .planning/phases/01-core-types/01-02-SUMMARY.md
