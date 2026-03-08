@@ -9,9 +9,9 @@
 
 - [x] **CORE-01**: ParsedProperty readonly struct with offset, length, and path into byte buffer
 - [x] **CORE-02**: On-demand value materialization via GetString(), GetInt32(), GetInt64(), GetDouble(), GetBoolean(), GetDecimal()
-- [ ] **CORE-03**: Offset table mapping schema property ordinals to byte positions (ArrayPool-backed)
+- [x] **CORE-03**: Offset table mapping schema property ordinals to byte positions (ArrayPool-backed)
 - [x] **CORE-04**: ValidationError readonly struct with RFC 6901 path, error code enum, and static message
-- [ ] **CORE-05**: ErrorCollector with pre-allocated buffer, max 64 errors default
+- [x] **CORE-05**: ErrorCollector with pre-allocated buffer, max 64 errors default
 - [ ] **CORE-06**: ParseResult readonly struct with success/failure and parsed data access, IDisposable for buffer return
 - [ ] **CORE-07**: Dual API surface: TryParse (bool + out) and Parse (returns nullable, never throws)
 
@@ -104,9 +104,9 @@
 |-------------|-------|--------|
 | CORE-01 | Phase 1: Core Types | Complete |
 | CORE-02 | Phase 1: Core Types | Complete |
-| CORE-03 | Phase 1: Core Types | Pending |
+| CORE-03 | Phase 1: Core Types | Complete |
 | CORE-04 | Phase 1: Core Types | Complete |
-| CORE-05 | Phase 1: Core Types | Pending |
+| CORE-05 | Phase 1: Core Types | Complete |
 | CORE-06 | Phase 1: Core Types | Pending |
 | CORE-07 | Phase 1: Core Types | Pending |
 | SCHM-01 | Phase 2: Schema Model | Pending |
