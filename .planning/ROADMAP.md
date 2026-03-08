@@ -35,11 +35,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. ValidationError readonly struct carries an RFC 6901 JSON Pointer path, an error code enum value, and a static message string
   4. ErrorCollector pre-allocates a fixed-capacity buffer (default 64) and collects errors without heap allocation
   5. ParseResult readonly struct exposes success/failure state and parsed data access, implements IDisposable for buffer return, and the dual API compiles: TryParse returns bool with out parameter, Parse returns nullable and never throws
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Leaf types: ParsedProperty with value materialization, ValidationErrorCode enum, ValidationError struct, ValidationErrorMessages lookup
+- [ ] 01-02-PLAN.md — Container types: OffsetTable (ArrayPool-backed ordinal mapping) and ErrorCollector (pre-allocated error buffer with sentinel overflow)
+- [ ] 01-03-PLAN.md — Composite: ParseResult with dual indexers and IDisposable, dual API surface on JsonContractSchema (TryParse/Parse)
 
 ### Phase 2: Schema Model
 **Goal**: JSON Schema documents can be loaded and compiled into an immutable, indexed schema tree with precomputed paths ready for validation
@@ -179,7 +180,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Types | 0/0 | Not started | - |
+| 1. Core Types | 0/3 | Planning complete | - |
 | 2. Schema Model | 0/0 | Not started | - |
 | 3. Schema References | 0/0 | Not started | - |
 | 4. JSON Byte Reader | 0/0 | Not started | - |
