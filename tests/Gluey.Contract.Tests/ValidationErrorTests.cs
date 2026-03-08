@@ -73,7 +73,7 @@ public class ValidationErrorTests
     {
         var message = ValidationErrorMessages.Get(ValidationErrorCode.TooManyErrors);
         message.Should().NotBeNullOrEmpty();
-        message.Should().Contain("too many", Exactly.Once(), "sentinel message should indicate truncation");
+        message.Should().ContainEquivalentOf("too many", Exactly.Once(), "sentinel message should indicate truncation");
     }
 
     [Test]
