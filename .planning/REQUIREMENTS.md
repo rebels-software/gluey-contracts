@@ -1,0 +1,114 @@
+# Requirements: Gluey.Contract
+
+**Defined:** 2026-03-08
+**Core Value:** Zero-allocation, single-pass validation and indexing of raw bytes against a schema
+
+## v1 Requirements
+
+### Core Types
+
+- [ ] **CORE-01**: ParsedProperty readonly struct with offset, length, and path into byte buffer
+- [ ] **CORE-02**: On-demand value materialization via GetString(), GetInt32(), GetInt64(), GetDouble(), GetBoolean(), GetDecimal()
+- [ ] **CORE-03**: Offset table mapping schema property ordinals to byte positions (ArrayPool-backed)
+- [ ] **CORE-04**: ValidationError readonly struct with RFC 6901 path, error code enum, and static message
+- [ ] **CORE-05**: ErrorCollector with pre-allocated buffer, max 64 errors default
+- [ ] **CORE-06**: ParseResult readonly struct with success/failure and parsed data access, IDisposable for buffer return
+- [ ] **CORE-07**: Dual API surface: TryParse (bool + out) and Parse (returns nullable, never throws)
+
+### Schema
+
+- [ ] **SCHM-01**: Schema loading from JSON bytes and JSON string
+- [ ] **SCHM-02**: SchemaNode immutable tree with precomputed JSON Pointer paths
+- [ ] **SCHM-03**: $ref / $defs resolution at schema-load time with cycle detection
+- [ ] **SCHM-04**: $anchor resolution for named reference targets
+- [ ] **SCHM-05**: Property index assignment for zero-allocation offset table sizing
+- [ ] **SCHM-06**: Schema registry for multi-schema $ref resolution by URI
+
+### Reader
+
+- [ ] **READ-01**: JSON byte tokenizer with native byte offset tracking
+- [ ] **READ-02**: Accept byte[], ReadOnlySpan<byte>, and ReadOnlyMemory<byte> inputs
+- [ ] **READ-03**: Structural JSON validation (well-formedness)
+
+### Validation
+
+- [ ] **VALD-01**: type keyword (null, boolean, integer, number, string, array, object)
+- [ ] **VALD-02**: enum and const keywords with byte-level comparison
+- [ ] **VALD-03**: required keyword
+- [ ] **VALD-04**: properties and additionalProperties keywords
+- [ ] **VALD-05**: items and prefixItems keywords
+- [ ] **VALD-06**: minimum, maximum, exclusiveMinimum, exclusiveMaximum, multipleOf
+- [ ] **VALD-07**: minLength, maxLength (Unicode codepoint counting), pattern
+- [ ] **VALD-08**: minItems, maxItems, minProperties, maxProperties
+- [ ] **VALD-09**: allOf, anyOf, oneOf, not composition
+- [ ] **VALD-10**: if / then / else conditional validation
+- [ ] **VALD-11**: dependentRequired and dependentSchemas
+- [ ] **VALD-12**: patternProperties and propertyNames
+- [ ] **VALD-13**: contains, minContains, maxContains
+- [ ] **VALD-14**: uniqueItems with zero-allocation hashing strategy
+- [ ] **VALD-15**: Format annotation by default, opt-in format assertion
+- [ ] **VALD-16**: Common format validators: date-time, date, time, email, uuid, uri, ipv4, ipv6, json-pointer
+- [ ] **VALD-17**: All errors collected per parse (not fail-fast), configurable max count
+
+### Integration
+
+- [ ] **INTG-01**: Single-pass validation + offset table construction
+- [ ] **INTG-02**: Nested property access via offset table (data["address"]["street"])
+- [ ] **INTG-03**: Array element access via offset table (data["tags"][0])
+
+### Quality
+
+- [ ] **QUAL-01**: BenchmarkDotNet suite proving zero heap allocation on parse path
+- [ ] **QUAL-02**: Allocation regression tests using GC.GetAllocatedBytesForCurrentThread
+- [ ] **QUAL-03**: NuGet packages configured and ready for publishing
+
+## v2 Requirements
+
+### Unevaluated Keywords
+
+- **UEVL-01**: unevaluatedProperties with annotation tracking across applicators
+- **UEVL-02**: unevaluatedItems with annotation tracking across applicators
+
+### Dynamic References
+
+- **DYNR-01**: $dynamicRef runtime resolution
+- **DYNR-02**: $dynamicAnchor target declaration
+
+### Extensions
+
+- **EXTN-01**: Custom keyword extension API
+- **EXTN-02**: JSON Schema output format (List/Hierarchical per spec)
+- **EXTN-03**: Content vocabulary (contentMediaType, contentEncoding, contentSchema)
+- **EXTN-04**: Meta-data annotations collection API (title, description, default, deprecated)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Full deserialization to POCO/objects | Defeats zero-allocation purpose; System.Text.Json already does this |
+| Schema generation from C# types | Huge surface area, already solved by NJsonSchema |
+| Code generation from schema | Different product; Corvus.JsonSchema does this |
+| Stream/async input processing | Breaks single-pass contiguous buffer model |
+| $vocabulary meta-schema validation | Schema-authoring concern, not runtime validation |
+| Remote $ref resolution (HTTP) | Security concerns (SSRF), violates no-dependencies constraint |
+| Business/domain validation rules | Application-layer concern |
+| Gluey.Contract.AspNetCore | Separate package, future milestone |
+| Gluey.Contract.Protobuf | Separate format driver, future milestone |
+| Gluey.Contract.Postgres | Separate format driver, future milestone |
+| Gluey.Contract.Redis | Separate format driver, future milestone |
+| Result<T> pattern | Parse returns nullable instead; simpler API |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| (Populated during roadmap creation) | | |
+
+**Coverage:**
+- v1 requirements: 33 total
+- Mapped to phases: 0
+- Unmapped: 33
+
+---
+*Requirements defined: 2026-03-08*
+*Last updated: 2026-03-08 after initial definition*
