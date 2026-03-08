@@ -12,7 +12,7 @@ Gluey.Contract delivers a zero-allocation, single-pass JSON Schema validator and
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Core Types** - Readonly struct foundations: ParsedProperty, OffsetTable, ValidationError, ErrorCollector, ParseResult, and dual API surface
+- [x] **Phase 1: Core Types** - Readonly struct foundations: ParsedProperty, OffsetTable, ValidationError, ErrorCollector, ParseResult, and dual API surface
 - [ ] **Phase 2: Schema Model** - Schema loading, immutable SchemaNode tree with precomputed paths, and property index assignment
 - [ ] **Phase 3: Schema References** - $ref/$defs resolution with cycle detection, $anchor support, and schema registry
 - [ ] **Phase 4: JSON Byte Reader** - UTF-8 tokenizer with native byte offset tracking, multi-input support, and structural validation
@@ -38,9 +38,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Leaf types: ParsedProperty with value materialization, ValidationErrorCode enum, ValidationError struct, ValidationErrorMessages lookup
-- [ ] 01-02-PLAN.md — Container types: OffsetTable (ArrayPool-backed ordinal mapping) and ErrorCollector (pre-allocated error buffer with sentinel overflow)
-- [ ] 01-03-PLAN.md — Composite: ParseResult with dual indexers and IDisposable, dual API surface on JsonContractSchema (TryParse/Parse)
+- [x] 01-01-PLAN.md — Leaf types: ParsedProperty with value materialization, ValidationErrorCode enum, ValidationError struct, ValidationErrorMessages lookup
+- [x] 01-02-PLAN.md — Container types: OffsetTable (ArrayPool-backed ordinal mapping) and ErrorCollector (pre-allocated error buffer with sentinel overflow)
+- [x] 01-03-PLAN.md — Composite: ParseResult with dual indexers and IDisposable, dual API surface on JsonContractSchema (TryParse/Parse)
 
 ### Phase 2: Schema Model
 **Goal**: JSON Schema documents can be loaded and compiled into an immutable, indexed schema tree with precomputed paths ready for validation
@@ -180,7 +180,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Types | 2/3 | In Progress|  |
+| 1. Core Types | 3/3 | Complete | 2026-03-08 |
 | 2. Schema Model | 0/0 | Not started | - |
 | 3. Schema References | 0/0 | Not started | - |
 | 4. JSON Byte Reader | 0/0 | Not started | - |

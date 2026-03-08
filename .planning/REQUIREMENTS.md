@@ -12,8 +12,8 @@
 - [x] **CORE-03**: Offset table mapping schema property ordinals to byte positions (ArrayPool-backed)
 - [x] **CORE-04**: ValidationError readonly struct with RFC 6901 path, error code enum, and static message
 - [x] **CORE-05**: ErrorCollector with pre-allocated buffer, max 64 errors default
-- [ ] **CORE-06**: ParseResult readonly struct with success/failure and parsed data access, IDisposable for buffer return
-- [ ] **CORE-07**: Dual API surface: TryParse (bool + out) and Parse (returns nullable, never throws)
+- [x] **CORE-06**: ParseResult readonly struct with success/failure and parsed data access, IDisposable for buffer return
+- [x] **CORE-07**: Dual API surface: TryParse (bool + out) and Parse (returns nullable, never throws)
 
 ### Schema
 
@@ -107,8 +107,8 @@
 | CORE-03 | Phase 1: Core Types | Complete |
 | CORE-04 | Phase 1: Core Types | Complete |
 | CORE-05 | Phase 1: Core Types | Complete |
-| CORE-06 | Phase 1: Core Types | Pending |
-| CORE-07 | Phase 1: Core Types | Pending |
+| CORE-06 | Phase 1: Core Types | Complete |
+| CORE-07 | Phase 1: Core Types | Complete |
 | SCHM-01 | Phase 2: Schema Model | Pending |
 | SCHM-02 | Phase 2: Schema Model | Pending |
 | SCHM-05 | Phase 2: Schema Model | Pending |
