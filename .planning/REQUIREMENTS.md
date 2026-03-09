@@ -32,8 +32,8 @@
 
 ### Validation
 
-- [ ] **VALD-01**: type keyword (null, boolean, integer, number, string, array, object)
-- [ ] **VALD-02**: enum and const keywords with byte-level comparison
+- [x] **VALD-01**: type keyword (null, boolean, integer, number, string, array, object)
+- [x] **VALD-02**: enum and const keywords with byte-level comparison
 - [ ] **VALD-03**: required keyword
 - [ ] **VALD-04**: properties and additionalProperties keywords
 - [ ] **VALD-05**: items and prefixItems keywords
@@ -48,7 +48,7 @@
 - [ ] **VALD-14**: uniqueItems with zero-allocation hashing strategy
 - [ ] **VALD-15**: Format annotation by default, opt-in format assertion
 - [ ] **VALD-16**: Common format validators: date-time, date, time, email, uuid, uri, ipv4, ipv6, json-pointer
-- [ ] **VALD-17**: All errors collected per parse (not fail-fast), configurable max count
+- [x] **VALD-17**: All errors collected per parse (not fail-fast), configurable max count
 
 ### Integration
 
@@ -118,12 +118,12 @@
 | READ-01 | Phase 4: JSON Byte Reader | Complete |
 | READ-02 | Phase 4: JSON Byte Reader | Complete |
 | READ-03 | Phase 4: JSON Byte Reader | Complete |
-| VALD-01 | Phase 5: Basic Validation | Pending |
-| VALD-02 | Phase 5: Basic Validation | Pending |
+| VALD-01 | Phase 5: Basic Validation | Complete |
+| VALD-02 | Phase 5: Basic Validation | Complete |
 | VALD-03 | Phase 5: Basic Validation | Pending |
 | VALD-04 | Phase 5: Basic Validation | Pending |
 | VALD-05 | Phase 5: Basic Validation | Pending |
-| VALD-17 | Phase 5: Basic Validation | Pending |
+| VALD-17 | Phase 5: Basic Validation | Complete |
 | VALD-06 | Phase 6: Constraint Validation | Pending |
 | VALD-07 | Phase 6: Constraint Validation | Pending |
 | VALD-08 | Phase 6: Constraint Validation | Pending |
