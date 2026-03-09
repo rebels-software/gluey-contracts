@@ -70,6 +70,12 @@ internal static class ValidationErrorMessages
         // Format
         Messages[(int)ValidationErrorCode.FormatInvalid] = "Value does not match the expected format.";
 
+        // Schema reference errors
+        Messages[(int)ValidationErrorCode.RefCycle] = "A $ref creates a circular reference chain.";
+        Messages[(int)ValidationErrorCode.RefUnresolved] = "A $ref target cannot be resolved.";
+        Messages[(int)ValidationErrorCode.AnchorUnresolved] = "A $anchor target cannot be resolved.";
+        Messages[(int)ValidationErrorCode.AnchorDuplicate] = "Duplicate $anchor declaration in the same schema resource.";
+
         // Sentinel
         Messages[(int)ValidationErrorCode.TooManyErrors] = "Too many validation errors; remaining errors have been truncated.";
     }
