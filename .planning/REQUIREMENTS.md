@@ -34,9 +34,9 @@
 
 - [x] **VALD-01**: type keyword (null, boolean, integer, number, string, array, object)
 - [x] **VALD-02**: enum and const keywords with byte-level comparison
-- [ ] **VALD-03**: required keyword
-- [ ] **VALD-04**: properties and additionalProperties keywords
-- [ ] **VALD-05**: items and prefixItems keywords
+- [x] **VALD-03**: required keyword
+- [x] **VALD-04**: properties and additionalProperties keywords
+- [x] **VALD-05**: items and prefixItems keywords
 - [ ] **VALD-06**: minimum, maximum, exclusiveMinimum, exclusiveMaximum, multipleOf
 - [ ] **VALD-07**: minLength, maxLength (Unicode codepoint counting), pattern
 - [ ] **VALD-08**: minItems, maxItems, minProperties, maxProperties
@@ -120,9 +120,9 @@
 | READ-03 | Phase 4: JSON Byte Reader | Complete |
 | VALD-01 | Phase 5: Basic Validation | Complete |
 | VALD-02 | Phase 5: Basic Validation | Complete |
-| VALD-03 | Phase 5: Basic Validation | Pending |
-| VALD-04 | Phase 5: Basic Validation | Pending |
-| VALD-05 | Phase 5: Basic Validation | Pending |
+| VALD-03 | Phase 5: Basic Validation | Complete |
+| VALD-04 | Phase 5: Basic Validation | Complete |
+| VALD-05 | Phase 5: Basic Validation | Complete |
 | VALD-17 | Phase 5: Basic Validation | Complete |
 | VALD-06 | Phase 6: Constraint Validation | Pending |
 | VALD-07 | Phase 6: Constraint Validation | Pending |

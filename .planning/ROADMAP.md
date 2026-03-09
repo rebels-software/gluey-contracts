@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Schema Model** - Schema loading, immutable SchemaNode tree with precomputed paths, and property index assignment (completed 2026-03-09)
 - [x] **Phase 3: Schema References** - $ref/$defs resolution with cycle detection, $anchor support, and schema registry (completed 2026-03-09)
 - [ ] **Phase 4: JSON Byte Reader** - UTF-8 tokenizer with native byte offset tracking, multi-input support, and structural validation
-- [ ] **Phase 5: Basic Validation** - Core keyword validators (type, enum, const, required, properties, items) and error collection pipeline
+- [x] **Phase 5: Basic Validation** - Core keyword validators (type, enum, const, required, properties, items) and error collection pipeline (completed 2026-03-09)
 - [ ] **Phase 6: Constraint Validation** - Numeric, string, and size constraint validators
 - [ ] **Phase 7: Composition and Conditionals** - allOf/anyOf/oneOf/not, if/then/else, and dependent keywords
 - [ ] **Phase 8: Advanced Validation** - patternProperties, contains, uniqueItems, and format annotation/assertion
@@ -183,7 +183,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 2. Schema Model | 2/2 | Complete   | 2026-03-09 |
 | 3. Schema References | 2/2 | Complete   | 2026-03-09 |
 | 4. JSON Byte Reader | 0/1 | Not started | - |
-| 5. Basic Validation | 1/2 | In Progress|  |
+| 5. Basic Validation | 2/2 | Complete   | 2026-03-09 |
 | 6. Constraint Validation | 0/0 | Not started | - |
 | 7. Composition and Conditionals | 0/0 | Not started | - |
 | 8. Advanced Validation | 0/0 | Not started | - |
