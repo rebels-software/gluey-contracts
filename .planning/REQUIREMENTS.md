@@ -37,8 +37,8 @@
 - [x] **VALD-03**: required keyword
 - [x] **VALD-04**: properties and additionalProperties keywords
 - [x] **VALD-05**: items and prefixItems keywords
-- [ ] **VALD-06**: minimum, maximum, exclusiveMinimum, exclusiveMaximum, multipleOf
-- [ ] **VALD-07**: minLength, maxLength (Unicode codepoint counting), pattern
+- [x] **VALD-06**: minimum, maximum, exclusiveMinimum, exclusiveMaximum, multipleOf
+- [x] **VALD-07**: minLength, maxLength (Unicode codepoint counting), pattern
 - [ ] **VALD-08**: minItems, maxItems, minProperties, maxProperties
 - [ ] **VALD-09**: allOf, anyOf, oneOf, not composition
 - [ ] **VALD-10**: if / then / else conditional validation
@@ -124,8 +124,8 @@
 | VALD-04 | Phase 5: Basic Validation | Complete |
 | VALD-05 | Phase 5: Basic Validation | Complete |
 | VALD-17 | Phase 5: Basic Validation | Complete |
-| VALD-06 | Phase 6: Constraint Validation | Pending |
-| VALD-07 | Phase 6: Constraint Validation | Pending |
+| VALD-06 | Phase 6: Constraint Validation | Complete |
+| VALD-07 | Phase 6: Constraint Validation | Complete |
 | VALD-08 | Phase 6: Constraint Validation | Pending |
 | VALD-09 | Phase 7: Composition and Conditionals | Pending |
 | VALD-10 | Phase 7: Composition and Conditionals | Pending |
