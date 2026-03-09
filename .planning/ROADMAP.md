@@ -13,7 +13,7 @@ Gluey.Contract delivers a zero-allocation, single-pass JSON Schema validator and
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Core Types** - Readonly struct foundations: ParsedProperty, OffsetTable, ValidationError, ErrorCollector, ParseResult, and dual API surface
-- [ ] **Phase 2: Schema Model** - Schema loading, immutable SchemaNode tree with precomputed paths, and property index assignment
+- [x] **Phase 2: Schema Model** - Schema loading, immutable SchemaNode tree with precomputed paths, and property index assignment (completed 2026-03-09)
 - [ ] **Phase 3: Schema References** - $ref/$defs resolution with cycle detection, $anchor support, and schema registry
 - [ ] **Phase 4: JSON Byte Reader** - UTF-8 tokenizer with native byte offset tracking, multi-input support, and structural validation
 - [ ] **Phase 5: Basic Validation** - Core keyword validators (type, enum, const, required, properties, items) and error collection pipeline
@@ -181,7 +181,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Types | 3/3 | Complete | 2026-03-08 |
-| 2. Schema Model | 0/2 | Planning complete | - |
+| 2. Schema Model | 2/2 | Complete   | 2026-03-09 |
 | 3. Schema References | 0/0 | Not started | - |
 | 4. JSON Byte Reader | 0/0 | Not started | - |
 | 5. Basic Validation | 0/0 | Not started | - |
