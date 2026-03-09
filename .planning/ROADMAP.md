@@ -125,8 +125,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md — CompositionValidator (allOf/anyOf/oneOf/not) with pre-computed pass count interface
+- [ ] 07-02-PLAN.md — ConditionalValidator (if/then/else) + DependencyValidator (dependentRequired/dependentSchemas)
 
 ### Phase 8: Advanced Validation
 **Goal**: Remaining validation keywords complete JSON Schema Draft 2020-12 coverage for v1
@@ -185,7 +185,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 4. JSON Byte Reader | 0/1 | Not started | - |
 | 5. Basic Validation | 2/2 | Complete   | 2026-03-09 |
 | 6. Constraint Validation | 1/2 | In progress | - |
-| 7. Composition and Conditionals | 0/0 | Not started | - |
+| 7. Composition and Conditionals | 0/2 | Not started | - |
 | 8. Advanced Validation | 0/0 | Not started | - |
 | 9. Single-Pass Walker | 0/0 | Not started | - |
 | 10. Quality and Packaging | 0/0 | Not started | - |
