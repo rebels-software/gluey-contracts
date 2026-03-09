@@ -10,10 +10,13 @@ public class JsonContractSchemaApiTests
 {
     private static byte[] SampleJsonBytes => Encoding.UTF8.GetBytes("{\"name\":\"test\"}");
 
+    private static JsonContractSchema CreateSchema() =>
+        JsonContractSchema.Load("""{"type":"object","properties":{"name":{"type":"string"}}}""")!;
+
     [Test]
     public void TryParse_Compiles_AndReturnsFalse()
     {
-        var schema = new JsonContractSchema();
+        var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
         bool success = schema.TryParse(data, out ParseResult result);
@@ -24,7 +27,7 @@ public class JsonContractSchemaApiTests
     [Test]
     public void TryParse_OutResult_IsDefault()
     {
-        var schema = new JsonContractSchema();
+        var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
         schema.TryParse(data, out ParseResult result);
@@ -37,7 +40,7 @@ public class JsonContractSchemaApiTests
     [Test]
     public void Parse_Compiles_AndReturnsNull()
     {
-        var schema = new JsonContractSchema();
+        var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
         ParseResult? result = schema.Parse(data);
@@ -48,7 +51,7 @@ public class JsonContractSchemaApiTests
     [Test]
     public void TryParse_DoesNotThrow()
     {
-        var schema = new JsonContractSchema();
+        var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
         // Direct call -- ReadOnlySpan cannot be captured in lambdas
@@ -61,7 +64,7 @@ public class JsonContractSchemaApiTests
     [Test]
     public void Parse_DoesNotThrow()
     {
-        var schema = new JsonContractSchema();
+        var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
         // Direct call -- ReadOnlySpan cannot be captured in lambdas
