@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using Gluey.Contract;
 
 namespace Gluey.Contract.Json;
@@ -16,16 +17,44 @@ internal static class KeywordValidator
     /// </summary>
     internal static SchemaType MapTokenToSchemaType(JsonByteTokenType tokenType, bool isInteger)
     {
-        throw new NotImplementedException();
+        return tokenType switch
+        {
+            JsonByteTokenType.Null => SchemaType.Null,
+            JsonByteTokenType.True => SchemaType.Boolean,
+            JsonByteTokenType.False => SchemaType.Boolean,
+            JsonByteTokenType.String => SchemaType.String,
+            JsonByteTokenType.StartObject => SchemaType.Object,
+            JsonByteTokenType.StartArray => SchemaType.Array,
+            JsonByteTokenType.Number => isInteger
+                ? SchemaType.Integer | SchemaType.Number
+                : SchemaType.Number,
+            _ => SchemaType.None,
+        };
     }
 
     /// <summary>
     /// Determines whether the given UTF-8 number bytes represent a mathematical integer
     /// (e.g., 42, 1.0, 1e2 are integers; 1.5 is not).
+    /// Uses <see cref="Utf8JsonReader.TryGetInt64"/> for battle-tested parsing.
     /// </summary>
     internal static bool IsInteger(ReadOnlySpan<byte> numberBytes)
     {
-        throw new NotImplementedException();
+        var reader = new Utf8JsonReader(numberBytes);
+        if (!reader.Read() || reader.TokenType != JsonTokenType.Number)
+            return false;
+
+        // TryGetInt64 only handles plain integer literals (no decimal point, no exponent).
+        // For mathematical integer detection (1.0, 1e2, 1.5e1), parse as decimal
+        // and check if it's a whole number within Int64 range.
+        if (reader.TryGetInt64(out _))
+            return true;
+
+        if (!reader.TryGetDecimal(out decimal value))
+            return false;
+
+        return value == decimal.Truncate(value)
+            && value >= long.MinValue
+            && value <= long.MaxValue;
     }
 
     /// <summary>
@@ -38,7 +67,15 @@ internal static class KeywordValidator
         string path,
         ErrorCollector collector)
     {
-        throw new NotImplementedException();
+        SchemaType actual = MapTokenToSchemaType(tokenType, isInteger);
+        if ((expected & actual) != 0)
+            return true;
+
+        collector.Add(new ValidationError(
+            path,
+            ValidationErrorCode.TypeMismatch,
+            ValidationErrorMessages.Get(ValidationErrorCode.TypeMismatch)));
+        return false;
     }
 
     /// <summary>
@@ -52,7 +89,28 @@ internal static class KeywordValidator
         string path,
         ErrorCollector collector)
     {
-        throw new NotImplementedException();
+        // Byte-exact pass
+        for (int i = 0; i < enumValues.Length; i++)
+        {
+            if (tokenBytes.SequenceEqual(enumValues[i]))
+                return true;
+        }
+
+        // Numeric fallback pass
+        if (tokenIsNumber)
+        {
+            for (int i = 0; i < enumValues.Length; i++)
+            {
+                if (TryNumericEqual(tokenBytes, enumValues[i], out bool equal) && equal)
+                    return true;
+            }
+        }
+
+        collector.Add(new ValidationError(
+            path,
+            ValidationErrorCode.EnumMismatch,
+            ValidationErrorMessages.Get(ValidationErrorCode.EnumMismatch)));
+        return false;
     }
 
     /// <summary>
@@ -66,6 +124,35 @@ internal static class KeywordValidator
         string path,
         ErrorCollector collector)
     {
-        throw new NotImplementedException();
+        if (tokenBytes.SequenceEqual(expected))
+            return true;
+
+        if (tokenIsNumber && TryNumericEqual(tokenBytes, expected, out bool equal) && equal)
+            return true;
+
+        collector.Add(new ValidationError(
+            path,
+            ValidationErrorCode.ConstMismatch,
+            ValidationErrorMessages.Get(ValidationErrorCode.ConstMismatch)));
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to compare two byte spans as JSON numbers using decimal parsing.
+    /// Returns true if both parse successfully; sets <paramref name="equal"/> to whether values match.
+    /// </summary>
+    private static bool TryNumericEqual(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, out bool equal)
+    {
+        equal = false;
+        var readerA = new Utf8JsonReader(a);
+        var readerB = new Utf8JsonReader(b);
+        if (!readerA.Read() || !readerB.Read())
+            return false;
+        if (!readerA.TryGetDecimal(out var valA))
+            return false;
+        if (!readerB.TryGetDecimal(out var valB))
+            return false;
+        equal = valA == valB;
+        return true;
     }
 }
