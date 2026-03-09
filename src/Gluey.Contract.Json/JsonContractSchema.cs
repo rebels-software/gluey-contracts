@@ -36,6 +36,12 @@ public class JsonContractSchema
     /// </summary>
     public int PropertyCount { get; }
 
+    /// <summary>
+    /// The root <see cref="SchemaNode"/> of the loaded schema tree.
+    /// Internal for use by tests and future phases that need to inspect the resolved tree.
+    /// </summary>
+    internal SchemaNode Root => _root;
+
     private JsonContractSchema(SchemaNode root, Dictionary<string, int> nameToOrdinal, int propertyCount)
     {
         _root = root;
@@ -53,11 +59,22 @@ public class JsonContractSchema
     /// When this method returns <c>true</c>, contains the loaded <see cref="JsonContractSchema"/>.
     /// When <c>false</c>, contains <c>null</c>.
     /// </param>
+    /// <param name="registry">
+    /// Optional <see cref="SchemaRegistry"/> for resolving cross-schema <c>$ref</c> URIs.
+    /// Pass <c>null</c> (or omit) when no cross-schema references are needed.
+    /// </param>
     /// <returns><c>true</c> if the schema was loaded successfully; otherwise <c>false</c>.</returns>
-    public static bool TryLoad(ReadOnlySpan<byte> utf8Json, out JsonContractSchema? schema)
+    public static bool TryLoad(ReadOnlySpan<byte> utf8Json, out JsonContractSchema? schema, SchemaRegistry? registry = null)
     {
         var root = JsonSchemaLoader.Load(utf8Json);
         if (root is null)
+        {
+            schema = null;
+            return false;
+        }
+
+        // Resolve $ref/$defs/$anchor references (between loader and indexer)
+        if (!SchemaRefResolver.TryResolve(root, registry))
         {
             schema = null;
             return false;
@@ -73,10 +90,13 @@ public class JsonContractSchema
     /// Returns <c>null</c> if the input is not a valid JSON Schema. Never throws.
     /// </summary>
     /// <param name="utf8Json">The raw UTF-8 encoded JSON Schema document.</param>
+    /// <param name="registry">
+    /// Optional <see cref="SchemaRegistry"/> for resolving cross-schema <c>$ref</c> URIs.
+    /// </param>
     /// <returns>A <see cref="JsonContractSchema"/> or <c>null</c> if loading failed.</returns>
-    public static JsonContractSchema? Load(ReadOnlySpan<byte> utf8Json)
+    public static JsonContractSchema? Load(ReadOnlySpan<byte> utf8Json, SchemaRegistry? registry = null)
     {
-        return TryLoad(utf8Json, out var schema) ? schema : null;
+        return TryLoad(utf8Json, out var schema, registry) ? schema : null;
     }
 
     /// <summary>
@@ -87,11 +107,14 @@ public class JsonContractSchema
     /// When this method returns <c>true</c>, contains the loaded <see cref="JsonContractSchema"/>.
     /// When <c>false</c>, contains <c>null</c>.
     /// </param>
+    /// <param name="registry">
+    /// Optional <see cref="SchemaRegistry"/> for resolving cross-schema <c>$ref</c> URIs.
+    /// </param>
     /// <returns><c>true</c> if the schema was loaded successfully; otherwise <c>false</c>.</returns>
-    public static bool TryLoad(string json, out JsonContractSchema? schema)
+    public static bool TryLoad(string json, out JsonContractSchema? schema, SchemaRegistry? registry = null)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
-        return TryLoad(bytes, out schema);
+        return TryLoad(bytes, out schema, registry);
     }
 
     /// <summary>
@@ -99,11 +122,14 @@ public class JsonContractSchema
     /// Returns <c>null</c> if the input is not a valid JSON Schema. Never throws.
     /// </summary>
     /// <param name="json">The JSON Schema document as a string.</param>
+    /// <param name="registry">
+    /// Optional <see cref="SchemaRegistry"/> for resolving cross-schema <c>$ref</c> URIs.
+    /// </param>
     /// <returns>A <see cref="JsonContractSchema"/> or <c>null</c> if loading failed.</returns>
-    public static JsonContractSchema? Load(string json)
+    public static JsonContractSchema? Load(string json, SchemaRegistry? registry = null)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
-        return Load(bytes);
+        return Load(bytes, registry);
     }
 
     // ── Instance parse methods (stubs until Phase 9) ─────────────────
