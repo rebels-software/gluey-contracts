@@ -19,8 +19,8 @@
 
 - [x] **SCHM-01**: Schema loading from JSON bytes and JSON string
 - [x] **SCHM-02**: SchemaNode immutable tree with precomputed JSON Pointer paths
-- [ ] **SCHM-03**: $ref / $defs resolution at schema-load time with cycle detection
-- [ ] **SCHM-04**: $anchor resolution for named reference targets
+- [x] **SCHM-03**: $ref / $defs resolution at schema-load time with cycle detection
+- [x] **SCHM-04**: $anchor resolution for named reference targets
 - [x] **SCHM-05**: Property index assignment for zero-allocation offset table sizing
 - [x] **SCHM-06**: Schema registry for multi-schema $ref resolution by URI
 
@@ -112,8 +112,8 @@
 | SCHM-01 | Phase 2: Schema Model | Complete |
 | SCHM-02 | Phase 2: Schema Model | Complete |
 | SCHM-05 | Phase 2: Schema Model | Complete |
-| SCHM-03 | Phase 3: Schema References | Pending |
-| SCHM-04 | Phase 3: Schema References | Pending |
+| SCHM-03 | Phase 3: Schema References | Complete |
+| SCHM-04 | Phase 3: Schema References | Complete |
 | SCHM-06 | Phase 3: Schema References | Complete |
 | READ-01 | Phase 4: JSON Byte Reader | Pending |
 | READ-02 | Phase 4: JSON Byte Reader | Pending |
