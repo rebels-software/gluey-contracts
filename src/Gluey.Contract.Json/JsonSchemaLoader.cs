@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Gluey.Contract;
 
 namespace Gluey.Contract.Json;
@@ -338,6 +339,20 @@ internal static class JsonSchemaLoader
             }
         }
 
+        // Compile regex pattern at load time (fail-fast on invalid patterns)
+        Regex? compiledPattern = null;
+        if (pattern is not null)
+        {
+            try
+            {
+                compiledPattern = new Regex(pattern, RegexOptions.Compiled);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+        }
+
         return new SchemaNode(
             path: currentPath,
             id: id,
@@ -358,6 +373,7 @@ internal static class JsonSchemaLoader
             minLength: minLength,
             maxLength: maxLength,
             pattern: pattern,
+            compiledPattern: compiledPattern,
             minItems: minItems,
             maxItems: maxItems,
             minContains: minContains,

@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Gluey.Contract;
 
 /// <summary>
@@ -84,6 +86,9 @@ internal sealed class SchemaNode
 
     /// <summary>The <c>pattern</c> keyword.</summary>
     internal string? Pattern { get; }
+
+    /// <summary>Pre-compiled <see cref="Regex"/> for the <c>pattern</c> keyword. Compiled at schema load time.</summary>
+    internal Regex? CompiledPattern { get; }
 
     // ── Validation — Array ───────────────────────────────────────────────
 
@@ -218,6 +223,7 @@ internal sealed class SchemaNode
         int? minLength = null,
         int? maxLength = null,
         string? pattern = null,
+        Regex? compiledPattern = null,
         // Validation — Array
         int? minItems = null,
         int? maxItems = null,
@@ -275,6 +281,7 @@ internal sealed class SchemaNode
         MinLength = minLength;
         MaxLength = maxLength;
         Pattern = pattern;
+        CompiledPattern = compiledPattern;
         MinItems = minItems;
         MaxItems = maxItems;
         MinContains = minContains;
