@@ -197,6 +197,24 @@ internal static class KeywordValidator
         return true;
     }
 
+    // ── Array keyword helpers ────────────────────────────────────────────
+
+    /// <summary>
+    /// Resolves the schema for an array element at the given index.
+    /// Returns the prefixItems positional schema if available, otherwise the items schema.
+    /// Returns null if no schema constrains the element.
+    /// </summary>
+    internal static SchemaNode? GetItemSchema(
+        int index,
+        SchemaNode[]? prefixItems,
+        SchemaNode? items)
+    {
+        if (prefixItems is not null && index < prefixItems.Length)
+            return prefixItems[index];
+
+        return items;
+    }
+
     /// <summary>
     /// Attempts to compare two byte spans as JSON numbers using decimal parsing.
     /// Returns true if both parse successfully; sets <paramref name="equal"/> to whether values match.
