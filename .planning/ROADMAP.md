@@ -97,8 +97,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Type, enum, const validators (KeywordValidator static class) with byte-level comparison
+- [ ] 05-02-PLAN.md — Required, properties/additionalProperties, items/prefixItems validators
 
 ### Phase 6: Constraint Validation
 **Goal**: Numeric, string, and collection size constraints enforce value-level rules on validated JSON data
