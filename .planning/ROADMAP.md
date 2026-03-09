@@ -64,11 +64,11 @@ Plans:
   1. $ref and $defs references resolve at schema-load time, and circular references are detected and reported as errors
   2. $anchor declarations create named reference targets that $ref can resolve to
   3. A schema registry allows multiple schemas to be registered by URI, enabling cross-schema $ref resolution
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — SchemaRegistry, SchemaNode.ResolvedRef, ref-related ValidationErrorCodes
+- [ ] 03-02-PLAN.md — SchemaRefResolver two-pass algorithm, JsonContractSchema integration, ref resolution tests
 
 ### Phase 4: JSON Byte Reader
 **Goal**: Raw UTF-8 JSON bytes can be tokenized with native byte offset tracking, providing the foundation for zero-allocation validation
@@ -78,7 +78,7 @@ Plans:
   1. JSON byte tokenizer reads UTF-8 bytes and reports token type, byte offset, and byte length for each token
   2. Reader accepts byte[], ReadOnlySpan<byte>, and ReadOnlyMemory<byte> inputs through a unified API
   3. Structurally invalid JSON (mismatched braces, invalid tokens, truncated input) is detected and reported as errors
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 04-01: TBD
@@ -95,7 +95,7 @@ Plans:
   4. properties and additionalProperties keywords validate object structure, rejecting unknown properties when configured
   5. items and prefixItems keywords validate array elements against their schemas
   6. All validation errors are collected (not fail-fast), respecting a configurable maximum count (default 64)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 05-01: TBD
@@ -109,7 +109,7 @@ Plans:
   1. minimum, maximum, exclusiveMinimum, exclusiveMaximum, and multipleOf enforce numeric constraints with correct precision
   2. minLength and maxLength count Unicode codepoints correctly, and pattern matches against string values
   3. minItems, maxItems, minProperties, and maxProperties enforce collection size constraints
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 06-01: TBD
@@ -123,7 +123,7 @@ Plans:
   1. allOf requires all subschemas to pass; anyOf requires at least one; oneOf requires exactly one; not inverts the result
   2. if/then/else conditionally applies subschemas based on the result of the if-schema evaluation
   3. dependentRequired enforces property co-occurrence rules, and dependentSchemas applies subschemas when trigger properties are present
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 07-01: TBD
@@ -138,7 +138,7 @@ Plans:
   2. contains validates that at least one array element matches, with minContains and maxContains controlling the count
   3. uniqueItems detects duplicate array elements using a zero-allocation hashing strategy
   4. Format keywords are treated as annotations by default, with opt-in assertion mode; common formats (date-time, date, time, email, uuid, uri, ipv4, ipv6, json-pointer) are implemented
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 08-01: TBD
@@ -152,7 +152,7 @@ Plans:
   1. A single call validates JSON bytes against a schema and builds the offset table simultaneously -- no second pass
   2. Nested properties are accessible via offset table indexing (e.g., data["address"]["street"] resolves to the correct byte range)
   3. Array elements are accessible via offset table indexing (e.g., data["tags"][0] resolves to the correct byte range)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 09-01: TBD
@@ -166,7 +166,7 @@ Plans:
   1. BenchmarkDotNet suite runs end-to-end parse scenarios and reports zero heap allocations via MemoryDiagnoser
   2. Allocation regression tests using GC.GetAllocatedBytesForCurrentThread assert zero allocations and fail CI on regressions
   3. Gluey.Contract and Gluey.Contract.Json NuGet packages are configured with correct metadata, dependencies, and are packable
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 10-01: TBD
