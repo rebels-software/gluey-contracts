@@ -137,6 +137,66 @@ internal static class KeywordValidator
         return false;
     }
 
+    // ── Object keyword validators ──────────────────────────────────────
+
+    /// <summary>
+    /// Validates the "required" keyword. Returns true if all required properties are present.
+    /// Collects an error for each missing property (not fail-fast).
+    /// </summary>
+    internal static bool ValidateRequired(
+        string[] required,
+        HashSet<string> seenProperties,
+        string path,
+        ErrorCollector collector)
+    {
+        bool valid = true;
+        for (int i = 0; i < required.Length; i++)
+        {
+            if (!seenProperties.Contains(required[i]))
+            {
+                collector.Add(new ValidationError(
+                    SchemaNode.BuildChildPath(path, required[i]),
+                    ValidationErrorCode.RequiredMissing,
+                    ValidationErrorMessages.Get(ValidationErrorCode.RequiredMissing)));
+                valid = false;
+            }
+        }
+        return valid;
+    }
+
+    /// <summary>
+    /// Validates whether a property is allowed by the "additionalProperties" keyword.
+    /// Returns true if the property is known or additional properties are allowed.
+    /// </summary>
+    internal static bool ValidateAdditionalProperty(
+        string propertyName,
+        Dictionary<string, SchemaNode>? properties,
+        SchemaNode? additionalProperties,
+        string path,
+        ErrorCollector collector)
+    {
+        // Known property — always allowed
+        if (properties is not null && properties.ContainsKey(propertyName))
+            return true;
+
+        // No additionalProperties constraint — spec default allows all
+        if (additionalProperties is null)
+            return true;
+
+        // Boolean schema false — reject
+        if (additionalProperties.BooleanSchema == false)
+        {
+            collector.Add(new ValidationError(
+                SchemaNode.BuildChildPath(path, propertyName),
+                ValidationErrorCode.AdditionalPropertyNotAllowed,
+                ValidationErrorMessages.Get(ValidationErrorCode.AdditionalPropertyNotAllowed)));
+            return false;
+        }
+
+        // Boolean schema true or schema-based — allow (schema validation deferred to walker)
+        return true;
+    }
+
     /// <summary>
     /// Attempts to compare two byte spans as JSON numbers using decimal parsing.
     /// Returns true if both parse successfully; sets <paramref name="equal"/> to whether values match.
