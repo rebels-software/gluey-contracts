@@ -78,11 +78,10 @@ Plans:
   1. JSON byte tokenizer reads UTF-8 bytes and reports token type, byte offset, and byte length for each token
   2. Reader accepts byte[], ReadOnlySpan<byte>, and ReadOnlyMemory<byte> inputs through a unified API
   3. Structurally invalid JSON (mismatched braces, invalid tokens, truncated input) is detected and reported as errors
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — JsonByteReader ref struct wrapping Utf8JsonReader, JsonByteTokenType enum, JsonReadError/JsonReadErrorKind types, TDD tests
 
 ### Phase 5: Basic Validation
 **Goal**: Core JSON Schema keywords validate correctly against tokenized bytes, with all errors collected into the error pipeline
@@ -175,7 +174,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 -> 10
 Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but are independent of each other.
 
 | Phase | Plans Complete | Status | Completed |
@@ -183,7 +182,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 1. Core Types | 3/3 | Complete | 2026-03-08 |
 | 2. Schema Model | 2/2 | Complete   | 2026-03-09 |
 | 3. Schema References | 2/2 | Complete   | 2026-03-09 |
-| 4. JSON Byte Reader | 0/0 | Not started | - |
+| 4. JSON Byte Reader | 0/1 | Not started | - |
 | 5. Basic Validation | 0/0 | Not started | - |
 | 6. Constraint Validation | 0/0 | Not started | - |
 | 7. Composition and Conditionals | 0/0 | Not started | - |
