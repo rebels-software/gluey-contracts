@@ -50,11 +50,11 @@ Plans:
   1. Schema can be loaded from raw JSON bytes and from a JSON string, producing an immutable SchemaNode tree
   2. Every node in the schema tree has a precomputed RFC 6901 JSON Pointer path (no string allocation needed during parse)
   3. Each property in the schema tree is assigned a stable integer index for offset table sizing
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — SchemaType flags enum + SchemaNode immutable class with all Draft 2020-12 keyword fields
+- [ ] 02-02-PLAN.md — JsonSchemaLoader recursive-descent parser, SchemaIndexer ordinal assignment, TryLoad/Load API
 
 ### Phase 3: Schema References
 **Goal**: Schemas with $ref, $defs, $anchor, and cross-schema references resolve correctly at load time, enabling composition of complex schemas
@@ -181,7 +181,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Types | 3/3 | Complete | 2026-03-08 |
-| 2. Schema Model | 0/0 | Not started | - |
+| 2. Schema Model | 0/2 | Planning complete | - |
 | 3. Schema References | 0/0 | Not started | - |
 | 4. JSON Byte Reader | 0/0 | Not started | - |
 | 5. Basic Validation | 0/0 | Not started | - |
