@@ -111,8 +111,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — NumericValidator + StringValidator with CompiledPattern on SchemaNode and regex compilation in loader
+- [ ] 06-02-PLAN.md — ArrayValidator (minItems/maxItems) + ObjectValidator (minProperties/maxProperties)
 
 ### Phase 7: Composition and Conditionals
 **Goal**: Schema composition and conditional keywords enable complex validation logic without breaking single-pass semantics
@@ -184,7 +184,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 3. Schema References | 2/2 | Complete   | 2026-03-09 |
 | 4. JSON Byte Reader | 0/1 | Not started | - |
 | 5. Basic Validation | 2/2 | Complete   | 2026-03-09 |
-| 6. Constraint Validation | 0/0 | Not started | - |
+| 6. Constraint Validation | 0/2 | Planned | - |
 | 7. Composition and Conditionals | 0/0 | Not started | - |
 | 8. Advanced Validation | 0/0 | Not started | - |
 | 9. Single-Pass Walker | 0/0 | Not started | - |
