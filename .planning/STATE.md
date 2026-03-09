@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-09T20:32:08Z"
-last_activity: 2026-03-09 — Plan 05-01 executed (KeywordValidator type/enum/const, 36 tests)
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-09T20:38:00Z"
+last_activity: 2026-03-09 — Plan 05-02 executed (required/additionalProperties/items validators, 22 tests)
 progress:
   total_phases: 10
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 ---
@@ -56,16 +56,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 Phase: 5 of 10 (Basic Validation)
-Plan: 1 of 2 completed in current phase
+Plan: 2 of 2 completed in current phase
 Status: Executing
-Last activity: 2026-03-09 — Plan 05-01 executed (KeywordValidator type/enum/const, 36 tests)
+Last activity: 2026-03-09 — Plan 05-02 executed (required/additionalProperties/items validators, 22 tests)
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 10
 - Average duration: 4 min
 - Total execution time: 0.4 hours
 
@@ -84,6 +84,7 @@ Progress: [█████████░] 90%
 *Updated after each plan completion*
 | Phase 04 P01 | 5min | 2 tasks | 5 files |
 | Phase 05 P01 | 3min | 1 task | 3 files |
+| Phase 05 P02 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,9 @@ Recent decisions affecting current work:
 - [Phase 04]: AllowTrailingCommas=true and CommentHandling=Skip for lenient structural parsing
 - [Phase 05]: IsInteger uses TryGetInt64 fast path + TryGetDecimal fallback for mathematical integer detection (05-01)
 - [Phase 05]: Integer tokens map to SchemaType.Integer | SchemaType.Number for spec-compliant subset semantics (05-01)
+- [Phase 05]: ValidateRequired collects all missing property errors (not fail-fast) for better diagnostics (05-02)
+- [Phase 05]: AdditionalProperties null = allow-all per spec default; only BooleanSchema==false rejects (05-02)
+- [Phase 05]: GetItemSchema is pure lookup -- no error collection; walker handles element validation (05-02)
 
 ### Pending Todos
 
@@ -130,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T20:32:08Z
-Stopped at: Completed 05-01-PLAN.md
-Resume file: .planning/phases/05-basic-validation/05-01-SUMMARY.md
+Last session: 2026-03-09T20:38:00Z
+Stopped at: Completed 05-02-PLAN.md
+Resume file: .planning/phases/05-basic-validation/05-02-SUMMARY.md
