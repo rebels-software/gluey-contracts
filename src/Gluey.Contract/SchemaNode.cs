@@ -29,6 +29,9 @@ internal sealed class SchemaNode
     /// <summary>The <c>$ref</c> keyword (stored as string, resolved in Phase 3).</summary>
     internal string? Ref { get; }
 
+    /// <summary>The resolved target node for <see cref="Ref"/>. Set by SchemaRefResolver after tree construction.</summary>
+    internal SchemaNode? ResolvedRef { get; set; }
+
     /// <summary>The <c>$dynamicRef</c> keyword.</summary>
     internal string? DynamicRef { get; }
 

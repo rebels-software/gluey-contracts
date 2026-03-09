@@ -135,6 +135,20 @@ public enum ValidationErrorCode : byte
     /// <summary>Value does not match the expected format.</summary>
     FormatInvalid,
 
+    // -- Schema reference errors --
+
+    /// <summary>A $ref creates a circular reference chain.</summary>
+    RefCycle,
+
+    /// <summary>A $ref target cannot be resolved (missing $defs entry, bad JSON Pointer, or unregistered URI).</summary>
+    RefUnresolved,
+
+    /// <summary>A $anchor target cannot be resolved.</summary>
+    AnchorUnresolved,
+
+    /// <summary>Duplicate $anchor declaration in the same schema resource.</summary>
+    AnchorDuplicate,
+
     // -- Sentinel --
 
     /// <summary>Too many validation errors; remaining errors have been truncated.</summary>
