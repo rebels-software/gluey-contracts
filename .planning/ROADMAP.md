@@ -183,7 +183,7 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 2. Schema Model | 2/2 | Complete   | 2026-03-09 |
 | 3. Schema References | 2/2 | Complete   | 2026-03-09 |
 | 4. JSON Byte Reader | 0/1 | Not started | - |
-| 5. Basic Validation | 0/0 | Not started | - |
+| 5. Basic Validation | 1/2 | In Progress|  |
 | 6. Constraint Validation | 0/0 | Not started | - |
 | 7. Composition and Conditionals | 0/0 | Not started | - |
 | 8. Advanced Validation | 0/0 | Not started | - |

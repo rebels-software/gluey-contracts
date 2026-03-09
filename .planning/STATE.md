@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-09T20:11:37.748Z"
-last_activity: 2026-03-09 — Plan 04-01 executed (JsonByteReader ref struct, 17 tests)
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-09T20:32:08Z"
+last_activity: 2026-03-09 — Plan 05-01 executed (KeywordValidator type/enum/const, 36 tests)
 progress:
   total_phases: 10
   completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 ---
@@ -51,16 +51,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Zero-allocation, single-pass validation and indexing of raw bytes against a schema
-**Current focus:** Phase 4: JSON Byte Reader
+**Current focus:** Phase 5: Basic Validation
 
 ## Current Position
 
-Phase: 4 of 10 (JSON Byte Reader) -- COMPLETE
-Plan: 1 of 1 completed in current phase
-Status: Phase Complete
-Last activity: 2026-03-09 — Plan 04-01 executed (JsonByteReader ref struct, 17 tests)
+Phase: 5 of 10 (Basic Validation)
+Plan: 1 of 2 completed in current phase
+Status: Executing
+Last activity: 2026-03-09 — Plan 05-01 executed (KeywordValidator type/enum/const, 36 tests)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -83,6 +83,7 @@ Progress: [██████████] 100%
 
 *Updated after each plan completion*
 | Phase 04 P01 | 5min | 2 tasks | 5 files |
+| Phase 05 P01 | 3min | 1 task | 3 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Single Number token type -- tokenizer does not interpret numeric subtype
 - [Phase 04]: UnexpectedEndOfData vs InvalidJson classified by comparing BytesConsumed to input length
 - [Phase 04]: AllowTrailingCommas=true and CommentHandling=Skip for lenient structural parsing
+- [Phase 05]: IsInteger uses TryGetInt64 fast path + TryGetDecimal fallback for mathematical integer detection (05-01)
+- [Phase 05]: Integer tokens map to SchemaType.Integer | SchemaType.Number for spec-compliant subset semantics (05-01)
 
 ### Pending Todos
 
@@ -127,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T20:11:37.724Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-basic-validation/05-CONTEXT.md
+Last session: 2026-03-09T20:32:08Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: .planning/phases/05-basic-validation/05-01-SUMMARY.md
