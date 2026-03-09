@@ -18,7 +18,7 @@
 ### Schema
 
 - [ ] **SCHM-01**: Schema loading from JSON bytes and JSON string
-- [ ] **SCHM-02**: SchemaNode immutable tree with precomputed JSON Pointer paths
+- [x] **SCHM-02**: SchemaNode immutable tree with precomputed JSON Pointer paths
 - [ ] **SCHM-03**: $ref / $defs resolution at schema-load time with cycle detection
 - [ ] **SCHM-04**: $anchor resolution for named reference targets
 - [ ] **SCHM-05**: Property index assignment for zero-allocation offset table sizing
@@ -110,7 +110,7 @@
 | CORE-06 | Phase 1: Core Types | Complete |
 | CORE-07 | Phase 1: Core Types | Complete |
 | SCHM-01 | Phase 2: Schema Model | Pending |
-| SCHM-02 | Phase 2: Schema Model | Pending |
+| SCHM-02 | Phase 2: Schema Model | Complete |
 | SCHM-05 | Phase 2: Schema Model | Pending |
 | SCHM-03 | Phase 3: Schema References | Pending |
 | SCHM-04 | Phase 3: Schema References | Pending |
