@@ -22,7 +22,7 @@
 - [ ] **SCHM-03**: $ref / $defs resolution at schema-load time with cycle detection
 - [ ] **SCHM-04**: $anchor resolution for named reference targets
 - [x] **SCHM-05**: Property index assignment for zero-allocation offset table sizing
-- [ ] **SCHM-06**: Schema registry for multi-schema $ref resolution by URI
+- [x] **SCHM-06**: Schema registry for multi-schema $ref resolution by URI
 
 ### Reader
 
@@ -114,7 +114,7 @@
 | SCHM-05 | Phase 2: Schema Model | Complete |
 | SCHM-03 | Phase 3: Schema References | Pending |
 | SCHM-04 | Phase 3: Schema References | Pending |
-| SCHM-06 | Phase 3: Schema References | Pending |
+| SCHM-06 | Phase 3: Schema References | Complete |
 | READ-01 | Phase 4: JSON Byte Reader | Pending |
 | READ-02 | Phase 4: JSON Byte Reader | Pending |
 | READ-03 | Phase 4: JSON Byte Reader | Pending |

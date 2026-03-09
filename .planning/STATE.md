@@ -3,30 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-09T14:42:36.694Z"
-last_activity: 2026-03-09 — Plan 02-02 executed (JsonSchemaLoader, SchemaIndexer, TryLoad/Load API)
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-09T15:20:28Z"
+last_activity: 2026-03-09 — Plan 03-01 executed (SchemaRegistry, ResolvedRef, ref error codes)
 progress:
   total_phases: 10
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-09T11:46:13Z"
-last_activity: 2026-03-09 — Plan 02-02 executed (JsonSchemaLoader, SchemaIndexer, TryLoad/Load API)
-progress:
-  total_phases: 10
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_plans: 7
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -36,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Zero-allocation, single-pass validation and indexing of raw bytes against a schema
-**Current focus:** Phase 2: Schema Model
+**Current focus:** Phase 3: Schema References
 
 ## Current Position
 
-Phase: 2 of 10 (Schema Model)
-Plan: 2 of 2 completed in current phase
-Status: Phase 2 Complete
-Last activity: 2026-03-09 — Plan 02-02 executed (JsonSchemaLoader, SchemaIndexer, TryLoad/Load API)
+Phase: 3 of 10 (Schema References)
+Plan: 1 of 2 completed in current phase
+Status: Executing
+Last activity: 2026-03-09 — Plan 03-01 executed (SchemaRegistry, ResolvedRef, ref error codes)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 4 min
 - Total execution time: 0.3 hours
 
@@ -60,9 +45,10 @@ Progress: [██████████] 100%
 |-------|-------|-------|----------|
 | 01-core-types | 3 | 12 min | 4 min |
 | 02-schema-model | 2 | 8 min | 4 min |
+| 03-schema-references | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (5 min), 01-03 (3 min), 02-01 (2 min), 02-02 (6 min)
+- Last 5 plans: 01-03 (3 min), 02-01 (2 min), 02-02 (6 min), 03-01 (2 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -89,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 02]: JsonSchemaLoader uses ValueTextEquals with u8 literals for zero-alloc keyword matching (02-02)
 - [Phase 02]: JsonContractSchema has private constructor; only TryLoad/Load factory methods for construction (02-02)
 - [Phase 02]: SchemaIndexer assigns ordinals only to named properties (Properties dict children), not array items (02-02)
+- [Phase 03]: SchemaRegistry.Add overwrites on duplicate URI (no exception) (03-01)
+- [Phase 03]: URI normalization: trim trailing slashes only, ordinal comparison (03-01)
+- [Phase 03]: ResolvedRef uses plain set accessor since property is already internal (03-01)
 
 ### Pending Todos
 
@@ -102,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T14:42:36.677Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-schema-references/03-CONTEXT.md
+Last session: 2026-03-09T15:20:28Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: .planning/phases/03-schema-references/03-01-SUMMARY.md
