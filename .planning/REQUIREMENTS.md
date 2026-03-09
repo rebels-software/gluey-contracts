@@ -26,9 +26,9 @@
 
 ### Reader
 
-- [ ] **READ-01**: JSON byte tokenizer with native byte offset tracking
-- [ ] **READ-02**: Accept byte[], ReadOnlySpan<byte>, and ReadOnlyMemory<byte> inputs
-- [ ] **READ-03**: Structural JSON validation (well-formedness)
+- [x] **READ-01**: JSON byte tokenizer with native byte offset tracking
+- [x] **READ-02**: Accept byte[], ReadOnlySpan<byte>, and ReadOnlyMemory<byte> inputs
+- [x] **READ-03**: Structural JSON validation (well-formedness)
 
 ### Validation
 
@@ -115,9 +115,9 @@
 | SCHM-03 | Phase 3: Schema References | Complete |
 | SCHM-04 | Phase 3: Schema References | Complete |
 | SCHM-06 | Phase 3: Schema References | Complete |
-| READ-01 | Phase 4: JSON Byte Reader | Pending |
-| READ-02 | Phase 4: JSON Byte Reader | Pending |
-| READ-03 | Phase 4: JSON Byte Reader | Pending |
+| READ-01 | Phase 4: JSON Byte Reader | Complete |
+| READ-02 | Phase 4: JSON Byte Reader | Complete |
+| READ-03 | Phase 4: JSON Byte Reader | Complete |
 | VALD-01 | Phase 5: Basic Validation | Pending |
 | VALD-02 | Phase 5: Basic Validation | Pending |
 | VALD-03 | Phase 5: Basic Validation | Pending |

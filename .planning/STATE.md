@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-09T16:38:38.750Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-09T16:56:00.082Z"
 last_activity: 2026-03-09 — Plan 03-02 executed (SchemaRefResolver, ref resolution pipeline, 13 tests)
 progress:
   total_phases: 10
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
 ---
 
 ---
@@ -36,14 +36,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Zero-allocation, single-pass validation and indexing of raw bytes against a schema
-**Current focus:** Phase 3: Schema References
+**Current focus:** Phase 4: JSON Byte Reader
 
 ## Current Position
 
-Phase: 3 of 10 (Schema References) -- COMPLETE
-Plan: 2 of 2 completed in current phase
+Phase: 4 of 10 (JSON Byte Reader) -- COMPLETE
+Plan: 1 of 1 completed in current phase
 Status: Phase Complete
-Last activity: 2026-03-09 — Plan 03-02 executed (SchemaRefResolver, ref resolution pipeline, 13 tests)
+Last activity: 2026-03-09 — Plan 04-01 executed (JsonByteReader ref struct, 17 tests)
 
 Progress: [██████████] 100%
 
@@ -67,6 +67,7 @@ Progress: [██████████] 100%
 - Trend: stable
 
 *Updated after each plan completion*
+| Phase 04 P01 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Two-pass ref resolution: collect anchors first, then resolve refs (03-02)
 - [Phase 03]: Per-chain cycle detection using HashSet of paths, not global visited set (03-02)
 - [Phase 03]: Container keywords ($defs, properties) use two-step JSON Pointer lookup (03-02)
+- [Phase 04]: Single Number token type -- tokenizer does not interpret numeric subtype
+- [Phase 04]: UnexpectedEndOfData vs InvalidJson classified by comparing BytesConsumed to input length
+- [Phase 04]: AllowTrailingCommas=true and CommentHandling=Skip for lenient structural parsing
 
 ### Pending Todos
 
@@ -103,12 +107,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 4: Resolve whether to wrap Utf8JsonReader or build custom JsonByteReader (research gap)
 - Phase 8: uniqueItems zero-allocation hashing strategy needs design work
 - Phase 8: Format assertion may need small allocation budget (opt-in, outside zero-alloc guarantee)
 
 ## Session Continuity
 
-Last session: 2026-03-09T16:38:38.729Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-json-byte-reader/04-CONTEXT.md
+Last session: 2026-03-09T16:56:00.078Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
