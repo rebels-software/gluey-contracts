@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-03-10T21:52:19.064Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-10T22:04:00.691Z"
 last_activity: 2026-03-10 — Plan 09-02 executed (ArrayBuffer + ParsedProperty hierarchical/array access, 11 tests)
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 ---
@@ -109,6 +109,7 @@ Progress: [██████████] 100%
 | Phase 09 P02 | 10min | 2 tasks | 7 files |
 | Phase 09 P03 | 3min | 2 tasks | 6 files |
 | Phase 10 P01 | 2min | 2 tasks | 6 files |
+| Phase 10 P02 | 9min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -170,6 +171,8 @@ Recent decisions affecting current work:
 - [Phase 09]: Double-dispose guard uses int[] holder with Interlocked.Exchange in ParseResult (single coordinator)
 - [Phase 10]: Removed double-dispose guard entirely -- underlying Dispose methods are safe to call multiple times
 - [Phase 10]: BenchmarkDotNet 0.14.0 selected as latest stable supporting .NET 9
+- [Phase 10]: Allocation tests use budget assertions rather than exact zero -- ErrorCollector int[1] and ArrayBuffer class are known per-call allocations
+- [Phase 10]: Format assertion tests use separate 2KB budget acknowledging opt-in string conversions
 
 ### Pending Todos
 
@@ -182,6 +185,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T21:52:19.060Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-03-10T22:04:00.688Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
