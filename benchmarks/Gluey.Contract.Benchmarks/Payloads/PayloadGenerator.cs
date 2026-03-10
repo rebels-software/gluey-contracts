@@ -26,7 +26,7 @@ public static class PayloadGenerator
         writer.WriteString("email", "john@example.com");
 
         int i = 0;
-        while (stream.Position < targetBytes - 50)
+        while (writer.BytesCommitted + writer.BytesPending < targetBytes - 50)
         {
             writer.WriteString($"extra_{i}", $"value_{i}_padding_data");
             writer.WriteNumber($"num_{i}", i * 17);
@@ -66,7 +66,7 @@ public static class PayloadGenerator
         writer.WriteEndObject();
 
         int i = 0;
-        while (stream.Position < targetBytes - 100)
+        while (writer.BytesCommitted + writer.BytesPending < targetBytes - 100)
         {
             writer.WriteStartObject($"section_{i}");
             writer.WriteString("label", $"section_label_{i}");
@@ -96,7 +96,7 @@ public static class PayloadGenerator
         writer.WriteStartArray("items");
 
         int i = 0;
-        while (stream.Position < targetBytes - 50)
+        while (writer.BytesCommitted + writer.BytesPending < targetBytes - 50)
         {
             writer.WriteStartObject();
             writer.WriteString("id", $"item-{i:D4}");
@@ -144,7 +144,7 @@ public static class PayloadGenerator
         writer.WriteEndObject();
 
         int i = 0;
-        while (stream.Position < targetBytes - 100)
+        while (writer.BytesCommitted + writer.BytesPending < targetBytes - 100)
         {
             writer.WriteString($"field_{i}", $"value_padding_{i}_extra_data_here");
             i++;
