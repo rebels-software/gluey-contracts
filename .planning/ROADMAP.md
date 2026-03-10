@@ -169,8 +169,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md — Refactor ParseResult zero-alloc dispose guard, NuGet package metadata, benchmark project scaffolding
+- [ ] 10-02-PLAN.md — BenchmarkDotNet scenarios (4 scenarios x 3 sizes), allocation regression tests, benchmark evidence
 
 ## Progress
 
@@ -189,4 +189,4 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 7. Composition and Conditionals | 2/2 | Complete   | 2026-03-09 |
 | 8. Advanced Validation | 2/2 | Complete | 2026-03-10 |
 | 9. Single-Pass Walker | 3/3 | Complete   | 2026-03-10 |
-| 10. Quality and Packaging | 0/0 | Not started | - |
+| 10. Quality and Packaging | 0/2 | Not started | - |
