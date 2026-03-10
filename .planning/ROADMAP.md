@@ -151,11 +151,12 @@ Plans:
   1. A single call validates JSON bytes against a schema and builds the offset table simultaneously -- no second pass
   2. Nested properties are accessible via offset table indexing (e.g., data["address"]["street"] resolves to the correct byte range)
   3. Array elements are accessible via offset table indexing (e.g., data["tags"][0] resolves to the correct byte range)
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — SchemaWalker ref struct core: single-pass validation + OffsetTable population + TryParse/Parse wiring
-- [ ] 09-02-PLAN.md — ArrayBuffer + ParsedProperty hierarchical indexers for nested property and array element access
+- [x] 09-01-PLAN.md — SchemaWalker ref struct core: single-pass validation + OffsetTable population + TryParse/Parse wiring
+- [x] 09-02-PLAN.md — ArrayBuffer + ParsedProperty hierarchical indexers for nested property and array element access
+- [ ] 09-03-PLAN.md — Gap closure: slash-prefix normalization, array enumeration, double-dispose safety
 
 ### Phase 10: Quality and Packaging
 **Goal**: Zero-allocation guarantees are proven by benchmarks and enforced by regression tests, and NuGet packages are ready to publish
@@ -174,7 +175,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 -> 10
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but are independent of each other.
 
 | Phase | Plans Complete | Status | Completed |
@@ -187,5 +188,5 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 6. Constraint Validation | 1/2 | In progress | - |
 | 7. Composition and Conditionals | 2/2 | Complete   | 2026-03-09 |
 | 8. Advanced Validation | 2/2 | Complete | 2026-03-10 |
-| 9. Single-Pass Walker | 1/2 | In Progress|  |
+| 9. Single-Pass Walker | 2/3 | In Progress |  |
 | 10. Quality and Packaging | 0/0 | Not started | - |
