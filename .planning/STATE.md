@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-03-10T16:29:36.646Z"
+stopped_at: Completed 09-03-PLAN.md
+last_updated: "2026-03-10T19:58:11.719Z"
 last_activity: 2026-03-10 — Plan 09-02 executed (ArrayBuffer + ParsedProperty hierarchical/array access, 11 tests)
 progress:
   total_phases: 10
   completed_phases: 9
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 19
+  completed_plans: 19
 ---
 
 ---
@@ -107,6 +107,7 @@ Progress: [██████████] 100%
 | Phase 08 P02 | 3min | 2 tasks | 5 files |
 | Phase 09 P01 | 11min | 2 tasks | 6 files |
 | Phase 09 P02 | 10min | 2 tasks | 7 files |
+| Phase 09 P03 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,9 @@ Recent decisions affecting current work:
 - [Phase 09]: ArrayBuffer is a class (not struct) to avoid copy semantics when shared across ParsedProperty instances (09-02)
 - [Phase 09]: Array element object children use direct Dictionary<string, ParsedProperty> to avoid OffsetTable ordinal collision (09-02)
 - [Phase 09]: Walker capture mechanism (_capturedChildren) snapshots child properties during WalkObject for array elements (09-02)
+- [Phase 09]: Slash-prefix fallback: ParseResult tries / + name; ParsedProperty iterates _childOrdinals for suffix match
+- [Phase 09]: ArrayEnumerator is duck-typed struct (no IEnumerator) for zero-allocation foreach
+- [Phase 09]: Double-dispose guard uses int[] holder with Interlocked.Exchange in ParseResult (single coordinator)
 
 ### Pending Todos
 
@@ -175,6 +179,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T16:24:31Z
-Stopped at: Completed 09-02-PLAN.md
-Resume file: .planning/phases/09-single-pass-walker/09-02-SUMMARY.md
+Last session: 2026-03-10T19:58:11.715Z
+Stopped at: Completed 09-03-PLAN.md
+Resume file: None
