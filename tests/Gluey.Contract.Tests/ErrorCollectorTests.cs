@@ -140,6 +140,20 @@ public class ErrorCollectorTests
     }
 
     [Test]
+    public void DoubleDispose_DoesNotThrow()
+    {
+        var collector = new ErrorCollector(8);
+
+        var act = () =>
+        {
+            collector.Dispose();
+            collector.Dispose();
+        };
+
+        act.Should().NotThrow();
+    }
+
+    [Test]
     public void GetEnumerator_AllowsForeach()
     {
         using var collector = new ErrorCollector(8);

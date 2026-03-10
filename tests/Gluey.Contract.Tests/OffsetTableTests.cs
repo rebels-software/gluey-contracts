@@ -75,6 +75,20 @@ public class OffsetTableTests
     }
 
     [Test]
+    public void DoubleDispose_DoesNotThrow()
+    {
+        var table = new OffsetTable(4);
+
+        var act = () =>
+        {
+            table.Dispose();
+            table.Dispose();
+        };
+
+        act.Should().NotThrow();
+    }
+
+    [Test]
     public void Set_MultipleOrdinals_AllRetrievable()
     {
         var buf1 = Encoding.UTF8.GetBytes("Alice");

@@ -137,6 +137,105 @@ public class ArrayElementAccessTests
         result.Dispose();
     }
 
+    // ── Array enumeration ──────────────────────────────────────────────
+
+    [Test]
+    public void Array_Count_ReturnsElementCount()
+    {
+        var schema = LoadSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+            }
+        }
+        """);
+        var data = Utf8("""{"tags":["a","b","c"]}""");
+
+        schema.TryParse(data, out var result);
+
+        result["/tags"].Count.Should().Be(3);
+        result.Dispose();
+    }
+
+    [Test]
+    public void Array_Foreach_YieldsAllElements()
+    {
+        var schema = LoadSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+            }
+        }
+        """);
+        var data = Utf8("""{"tags":["a","b","c"]}""");
+
+        schema.TryParse(data, out var result);
+
+        var values = new List<string>();
+        foreach (var elem in result["/tags"])
+        {
+            values.Add(elem.GetString());
+        }
+
+        values.Should().BeEquivalentTo(["a", "b", "c"]);
+        result.Dispose();
+    }
+
+    [Test]
+    public void NonArray_Count_ReturnsZero()
+    {
+        var schema = LoadSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" }
+            }
+        }
+        """);
+        var data = Utf8("""{"name":"Alice"}""");
+
+        schema.TryParse(data, out var result);
+
+        result["/name"].Count.Should().Be(0);
+        result.Dispose();
+    }
+
+    // ── Double-dispose safety ────────────────────────────────────────────
+
+    [Test]
+    public void ParseResult_DoubleDispose_DoesNotThrow()
+    {
+        var schema = LoadSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" }
+            }
+        }
+        """);
+        var data = Utf8("""{"name":"Alice"}""");
+
+        schema.TryParse(data, out var result);
+
+        var act = () =>
+        {
+            result.Dispose();
+            result.Dispose();
+        };
+
+        act.Should().NotThrow();
+    }
+
+    // ── Negative index ───────────────────────────────────────────────────
+
     [Test]
     public void ArrayElement_NegativeIndex_ReturnsEmpty()
     {
