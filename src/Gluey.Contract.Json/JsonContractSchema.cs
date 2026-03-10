@@ -158,11 +158,12 @@ public class JsonContractSchema
         {
             walkResult.Errors.Dispose();
             walkResult.Table.Dispose();
+            walkResult.ArrayBuffer?.Dispose();
             result = default;
             return false;
         }
 
-        result = new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal);
+        result = new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal, walkResult.ArrayBuffer);
 
         if (walkResult.Errors.HasErrors)
             return false;
@@ -188,11 +189,12 @@ public class JsonContractSchema
         {
             walkResult.Errors.Dispose();
             walkResult.Table.Dispose();
+            walkResult.ArrayBuffer?.Dispose();
             result = default;
             return false;
         }
 
-        result = new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal);
+        result = new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal, walkResult.ArrayBuffer);
 
         if (walkResult.Errors.HasErrors)
             return false;
@@ -218,10 +220,11 @@ public class JsonContractSchema
         {
             walkResult.Errors.Dispose();
             walkResult.Table.Dispose();
+            walkResult.ArrayBuffer?.Dispose();
             return null;
         }
 
-        return new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal);
+        return new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal, walkResult.ArrayBuffer);
     }
 
     /// <summary>
@@ -241,9 +244,10 @@ public class JsonContractSchema
         {
             walkResult.Errors.Dispose();
             walkResult.Table.Dispose();
+            walkResult.ArrayBuffer?.Dispose();
             return null;
         }
 
-        return new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal);
+        return new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal, walkResult.ArrayBuffer);
     }
 }

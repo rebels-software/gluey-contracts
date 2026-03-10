@@ -11,6 +11,7 @@ internal struct WalkResult
 {
     internal OffsetTable Table;
     internal ErrorCollector Errors;
+    internal ArrayBuffer? ArrayBuffer;
     internal bool HasStructuralError;
 }
 
@@ -30,6 +31,8 @@ internal ref struct SchemaWalker
     private readonly bool _buildOffsets;
     private readonly bool _assertFormat;
     private bool _structuralError;
+    private ArrayBuffer? _arrayBuffer;
+    private Dictionary<string, ParsedProperty>? _capturedChildren;
 
     private SchemaWalker(
         ReadOnlySpan<byte> utf8Json,
@@ -49,6 +52,8 @@ internal ref struct SchemaWalker
         _structuralError = false;
         _errors = new ErrorCollector();
         _table = _buildOffsets ? new OffsetTable(propertyCount) : default;
+        _arrayBuffer = _buildOffsets ? new ArrayBuffer() : null;
+        _capturedChildren = null;
     }
 
     // ── Static entry points ──────────────────────────────────────────────
@@ -102,6 +107,7 @@ internal ref struct SchemaWalker
         {
             Table = _table,
             Errors = _errors,
+            ArrayBuffer = _arrayBuffer,
             HasStructuralError = _structuralError,
         };
     }
@@ -112,7 +118,13 @@ internal ref struct SchemaWalker
     /// Validates the current token (already read) against the given schema node.
     /// Returns true if the value passes all validations for this node.
     /// </summary>
-    private bool WalkValue(SchemaNode node, string path)
+    /// <param name="node">The schema node to validate against.</param>
+    /// <param name="path">The RFC 6901 JSON Pointer path.</param>
+    /// <param name="arrayOrdinal">
+    /// When the current value is an array that should populate ArrayBuffer,
+    /// this is the ordinal to use as the array key. -1 means no ArrayBuffer population.
+    /// </param>
+    private bool WalkValue(SchemaNode node, string path, int arrayOrdinal = -1)
     {
         // Follow $ref transparently
         var effective = node.ResolvedRef ?? node;
@@ -147,7 +159,7 @@ internal ref struct SchemaWalker
             return WalkObject(effective, path);
 
         if (tokenType == JsonByteTokenType.StartArray)
-            return WalkArray(effective, path);
+            return WalkArray(effective, path, arrayOrdinal);
 
         // Scalar validation
         return ValidateScalar(effective, tokenType, byteOffset, byteLength, path);
@@ -269,6 +281,12 @@ internal ref struct SchemaWalker
         var seenProperties = new HashSet<string>();
         int propertyCount = 0;
 
+        // Track the start of this object for byte range calculation
+        int objectStartOffset = _reader.ByteOffset;
+
+        // Collect child ordinals for hierarchical access (local name -> ordinal)
+        Dictionary<string, int>? childOrdinals = _buildOffsets ? new Dictionary<string, int>() : null;
+
         while (true)
         {
             if (!_reader.Read())
@@ -332,8 +350,28 @@ internal ref struct SchemaWalker
             int valueOffset = _reader.ByteOffset;
             int valueLength = _reader.ByteLength;
 
+            // Track child ordinal for hierarchical access
+            int resolvedChildOrdinal = -1;
+            if (childOrdinals is not null && _nameToOrdinal!.TryGetValue(childPath, out int childOrd))
+            {
+                childOrdinals[name] = childOrd;
+                resolvedChildOrdinal = childOrd;
+            }
+
             // Determine effective schema for the value
             var effectiveSchema = childSchema ?? patternSchema;
+
+            // Determine if this child is an array (pass ordinal for ArrayBuffer population)
+            int childArrayOrd = -1;
+            if (_buildOffsets && resolvedChildOrdinal >= 0 && effectiveSchema is not null)
+            {
+                var resolvedEffective = effectiveSchema.ResolvedRef ?? effectiveSchema;
+                if (resolvedEffective.Items is not null || resolvedEffective.PrefixItems is not null ||
+                    (resolvedEffective.Type.HasValue && (resolvedEffective.Type.Value & SchemaType.Array) != 0))
+                {
+                    childArrayOrd = resolvedChildOrdinal;
+                }
+            }
 
             if (effectiveSchema is not null)
             {
@@ -347,7 +385,7 @@ internal ref struct SchemaWalker
                     effectiveSchema = node.AdditionalProperties;
                 }
 
-                if (!WalkValue(effectiveSchema, childPath))
+                if (!WalkValue(effectiveSchema, childPath, childArrayOrd))
                     valid = false;
             }
             else if (node.AdditionalProperties is not null
@@ -367,10 +405,45 @@ internal ref struct SchemaWalker
             // Store in OffsetTable if applicable
             if (_buildOffsets && _nameToOrdinal!.TryGetValue(childPath, out int ordinal))
             {
-                // For scalar values, use the captured offset/length
-                // For complex values, we need the span from valueOffset to current position
-                var property = new ParsedProperty(_data!, valueOffset, valueLength, childPath);
+                // Determine if this child has its own children (for hierarchical access)
+                var resolvedChild = (childSchema?.ResolvedRef ?? childSchema);
+                Dictionary<string, int>? grandchildOrdinals = null;
+                ArrayBuffer? childArrayBuffer = null;
+                int childArrayOrdinal = -1;
+
+                if (resolvedChild?.Properties is not null)
+                {
+                    // Build local name -> ordinal mapping for this child's children
+                    grandchildOrdinals = new Dictionary<string, int>();
+                    foreach (var (gcName, _) in resolvedChild.Properties)
+                    {
+                        string gcPath = SchemaNode.BuildChildPath(childPath, gcName);
+                        if (_nameToOrdinal!.TryGetValue(gcPath, out int gcOrd))
+                        {
+                            grandchildOrdinals[gcName] = gcOrd;
+                        }
+                    }
+                }
+
+                // Check if this child is an array type with items
+                if (resolvedChild is not null &&
+                    (resolvedChild.Items is not null || resolvedChild.PrefixItems is not null) &&
+                    _arrayBuffer is not null)
+                {
+                    childArrayBuffer = _arrayBuffer;
+                    childArrayOrdinal = ordinal; // use this property's ordinal as its array ordinal
+                }
+
+                var property = new ParsedProperty(_data!, valueOffset, valueLength, childPath,
+                    _table, grandchildOrdinals, childArrayBuffer, childArrayOrdinal);
                 _table.Set(ordinal, property);
+            }
+
+            // Also capture for array element child snapshotting if active
+            if (_capturedChildren is not null)
+            {
+                var property = new ParsedProperty(_data!, valueOffset, valueLength, childPath);
+                _capturedChildren[name] = property;
             }
         }
 
@@ -438,7 +511,12 @@ internal ref struct SchemaWalker
 
     // ── Array walking ────────────────────────────────────────────────────
 
-    private bool WalkArray(SchemaNode node, string path)
+    /// <summary>
+    /// Walks an array, validating elements and optionally populating ArrayBuffer.
+    /// The parentArrayOrdinal parameter allows the parent to specify which ordinal
+    /// to use for storing elements in the ArrayBuffer.
+    /// </summary>
+    private bool WalkArray(SchemaNode node, string path, int parentArrayOrdinal = -1)
     {
         bool valid = true;
         int elementCount = 0;
@@ -476,8 +554,36 @@ internal ref struct SchemaWalker
             var itemSchema = KeywordValidator.GetItemSchema(elementCount, node.PrefixItems, node.Items);
             var effectiveItemSchema = itemSchema ?? SchemaNode.True;
 
+            // Enable child capture for array elements that might be objects
+            if (_buildOffsets && parentArrayOrdinal >= 0)
+            {
+                var resolvedItem = effectiveItemSchema.ResolvedRef ?? effectiveItemSchema;
+                if (resolvedItem.Properties is not null)
+                {
+                    _capturedChildren = new Dictionary<string, ParsedProperty>();
+                }
+            }
+
             if (!WalkValue(effectiveItemSchema, elementPath))
                 valid = false;
+
+            // Store element in ArrayBuffer for indexed access
+            if (_buildOffsets && _arrayBuffer is not null && parentArrayOrdinal >= 0)
+            {
+                ParsedProperty elemProperty;
+                if (_capturedChildren is not null && _capturedChildren.Count > 0)
+                {
+                    // Use captured children from WalkObject (snapshotted during walk)
+                    elemProperty = new ParsedProperty(_data!, elemOffset, elemLength, elementPath,
+                        _capturedChildren);
+                    _capturedChildren = null; // consumed -- next element will create a new one
+                }
+                else
+                {
+                    elemProperty = new ParsedProperty(_data!, elemOffset, elemLength, elementPath);
+                }
+                _arrayBuffer.Add(parentArrayOrdinal, elemProperty);
+            }
 
             // Contains check
             if (node.Contains is not null)

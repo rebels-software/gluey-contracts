@@ -19,6 +19,7 @@ public readonly struct ParsedProperty
     private readonly string _path;
     private readonly OffsetTable _childTable;
     private readonly Dictionary<string, int>? _childOrdinals;
+    private readonly Dictionary<string, ParsedProperty>? _directChildren;
     private readonly ArrayBuffer? _arrayBuffer;
     private readonly int _arrayOrdinal;
 
@@ -38,6 +39,7 @@ public readonly struct ParsedProperty
         _path = path;
         _childTable = default;
         _childOrdinals = null;
+        _directChildren = null;
         _arrayBuffer = null;
         _arrayOrdinal = -1;
     }
@@ -64,8 +66,27 @@ public readonly struct ParsedProperty
         _path = path;
         _childTable = childTable;
         _childOrdinals = childOrdinals;
+        _directChildren = null;
         _arrayBuffer = arrayBuffer;
         _arrayOrdinal = arrayOrdinal;
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParsedProperty"/> with direct child property resolution.
+    /// Used for array element objects where child values are not in the shared OffsetTable.
+    /// </summary>
+    internal ParsedProperty(byte[] buffer, int offset, int length, string path,
+        Dictionary<string, ParsedProperty> directChildren)
+    {
+        _buffer = buffer;
+        _offset = offset;
+        _length = length;
+        _path = path;
+        _childTable = default;
+        _childOrdinals = null;
+        _directChildren = directChildren;
+        _arrayBuffer = null;
+        _arrayOrdinal = -1;
     }
 
     /// <summary>The RFC 6901 JSON Pointer path for this property.</summary>
@@ -88,6 +109,8 @@ public readonly struct ParsedProperty
     {
         get
         {
+            if (_directChildren is not null && _directChildren.TryGetValue(name, out var child))
+                return child;
             if (_childOrdinals is not null && _childOrdinals.TryGetValue(name, out int ordinal))
                 return _childTable[ordinal];
             return Empty;
