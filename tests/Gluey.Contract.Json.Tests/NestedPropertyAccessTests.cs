@@ -112,6 +112,75 @@ public class NestedPropertyAccessTests
         result.Dispose();
     }
 
+    // ── Slash-prefix normalization ──────────────────────────────────────
+
+    [Test]
+    public void TopLevel_WithoutSlashPrefix_ReturnsValue()
+    {
+        var schema = LoadSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" }
+            }
+        }
+        """);
+        var data = Utf8("""{"name":"Alice"}""");
+
+        schema.TryParse(data, out var result);
+
+        result["name"].HasValue.Should().BeTrue();
+        result["name"].GetString().Should().Be("Alice");
+        result.Dispose();
+    }
+
+    [Test]
+    public void Nested_WithoutSlashPrefix_ChainsCorrectly()
+    {
+        var schema = LoadSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "object",
+                    "properties": {
+                        "street": { "type": "string" }
+                    }
+                }
+            }
+        }
+        """);
+        var data = Utf8("""{"address":{"street":"Main"}}""");
+
+        schema.TryParse(data, out var result);
+
+        result["address"]["street"].HasValue.Should().BeTrue();
+        result["address"]["street"].GetString().Should().Be("Main");
+        result.Dispose();
+    }
+
+    [Test]
+    public void TopLevel_WithSlashPrefix_StillWorks()
+    {
+        var schema = LoadSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" }
+            }
+        }
+        """);
+        var data = Utf8("""{"name":"Alice"}""");
+
+        schema.TryParse(data, out var result);
+
+        result["/name"].HasValue.Should().BeTrue();
+        result["/name"].GetString().Should().Be("Alice");
+        result.Dispose();
+    }
+
+    // ── Deep nesting ─────────────────────────────────────────────────────
+
     [Test]
     public void NestedProperty_DeepNesting_ThreeLevels()
     {
