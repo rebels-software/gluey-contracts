@@ -154,8 +154,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 09-01-PLAN.md — SchemaWalker ref struct core: single-pass validation + OffsetTable population + TryParse/Parse wiring
+- [ ] 09-02-PLAN.md — ArrayBuffer + ParsedProperty hierarchical indexers for nested property and array element access
 
 ### Phase 10: Quality and Packaging
 **Goal**: Zero-allocation guarantees are proven by benchmarks and enforced by regression tests, and NuGet packages are ready to publish
@@ -187,5 +187,5 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 6. Constraint Validation | 1/2 | In progress | - |
 | 7. Composition and Conditionals | 2/2 | Complete   | 2026-03-09 |
 | 8. Advanced Validation | 2/2 | Complete | 2026-03-10 |
-| 9. Single-Pass Walker | 0/0 | Not started | - |
+| 9. Single-Pass Walker | 0/2 | Not started | - |
 | 10. Quality and Packaging | 0/0 | Not started | - |
