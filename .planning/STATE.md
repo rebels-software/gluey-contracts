@@ -55,9 +55,9 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 Phase: 9 of 10 (Single-Pass Walker)
-Plan: 1 of 1 completed in current phase
-Status: Executing Phase 9
-Last activity: 2026-03-10 — Plan 09-01 executed (SchemaWalker single-pass validation + offset table, 26 tests)
+Plan: 2 of 2 completed in current phase
+Status: Phase 9 Complete
+Last activity: 2026-03-10 — Plan 09-02 executed (ArrayBuffer + ParsedProperty hierarchical/array access, 11 tests)
 
 Progress: [██████████] 100%
 
@@ -91,6 +91,7 @@ Progress: [██████████] 100%
 | Phase 08 P01 | 4min | 2 tasks | 8 files |
 | Phase 08 P02 | 3min | 2 tasks | 5 files |
 | Phase 09 P01 | 11min | 2 tasks | 6 files |
+| Phase 09 P02 | 10min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,9 @@ Recent decisions affecting current work:
 - [Phase 09]: OffsetTable ordinals keyed by RFC 6901 path, accessed via result["/name"] (09-01)
 - [Phase 09]: WalkResult is non-ref struct to escape SchemaWalker ref struct scope (09-01)
 - [Phase 09]: Walker stores ReadOnlySpan<byte> for value byte access regardless of byte[]/span input (09-01)
+- [Phase 09]: ArrayBuffer is a class (not struct) to avoid copy semantics when shared across ParsedProperty instances (09-02)
+- [Phase 09]: Array element object children use direct Dictionary<string, ParsedProperty> to avoid OffsetTable ordinal collision (09-02)
+- [Phase 09]: Walker capture mechanism (_capturedChildren) snapshots child properties during WalkObject for array elements (09-02)
 
 ### Pending Todos
 
@@ -156,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T16:09:33Z
-Stopped at: Completed 09-01-PLAN.md
-Resume file: .planning/phases/09-single-pass-walker/09-01-SUMMARY.md
+Last session: 2026-03-10T16:24:31Z
+Stopped at: Completed 09-02-PLAN.md
+Resume file: .planning/phases/09-single-pass-walker/09-02-SUMMARY.md
