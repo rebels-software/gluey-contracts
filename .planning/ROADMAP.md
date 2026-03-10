@@ -186,6 +186,6 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 5. Basic Validation | 2/2 | Complete   | 2026-03-09 |
 | 6. Constraint Validation | 1/2 | In progress | - |
 | 7. Composition and Conditionals | 2/2 | Complete   | 2026-03-09 |
-| 8. Advanced Validation | 0/2 | Not started | - |
+| 8. Advanced Validation | 1/2 | In progress | - |
 | 9. Single-Pass Walker | 0/0 | Not started | - |
 | 10. Quality and Packaging | 0/0 | Not started | - |

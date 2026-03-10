@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-10T11:33:45.700Z"
-last_activity: 2026-03-09 — Plan 07-02 executed (ConditionalValidator + DependencyValidator, 12 tests)
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-10T11:57:54.000Z"
+last_activity: 2026-03-10 — Plan 08-01 executed (patternProperties, propertyNames, contains, uniqueItems validators, 28 tests)
 progress:
   total_phases: 10
   completed_phases: 7
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 15
+  completed_plans: 15
 ---
 
 ---
@@ -35,14 +35,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Zero-allocation, single-pass validation and indexing of raw bytes against a schema
-**Current focus:** Phase 7: Composition and Conditionals
+**Current focus:** Phase 8: Advanced Validation
 
 ## Current Position
 
-Phase: 7 of 10 (Composition and Conditionals)
-Plan: 2 of 2 completed in current phase
-Status: Phase 7 Complete
-Last activity: 2026-03-09 — Plan 07-02 executed (ConditionalValidator + DependencyValidator, 12 tests)
+Phase: 8 of 10 (Advanced Validation)
+Plan: 1 of 1 completed in current phase
+Status: Executing Phase 8
+Last activity: 2026-03-10 — Plan 08-01 executed (patternProperties, propertyNames, contains, uniqueItems validators, 28 tests)
 
 Progress: [██████████] 100%
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100%
 | Phase 06 P02 | 2min | 1 task | 4 files |
 | Phase 07 P01 | 3min | 1 tasks | 2 files |
 | Phase 07 P02 | 3min | 2 tasks | 4 files |
+| Phase 08 P01 | 4min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 07]: Composition validators receive pre-computed pass counts, not raw subschema arrays
 - [Phase 07]: dependentRequired uses root path directly (not BuildChildPath) per locked decision
 - [Phase 07]: ValidateDependentSchema handles one schema at a time (walker calls per trigger)
+- [Phase 08]: FNV-1a hash with stackalloc for <= 128 items, heap fallback for larger arrays (08-01)
+- [Phase 08]: Numeric equivalence check always runs for number pairs regardless of hash match (08-01)
+- [Phase 08]: patternProperties regex compiled at load time with fail-fast on invalid patterns (08-01)
 
 ### Pending Todos
 
@@ -123,11 +127,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 8: uniqueItems zero-allocation hashing strategy needs design work
+- Phase 8: uniqueItems zero-allocation hashing strategy -- RESOLVED (FNV-1a with stackalloc)
 - Phase 8: Format assertion may need small allocation budget (opt-in, outside zero-alloc guarantee)
 
 ## Session Continuity
 
-Last session: 2026-03-10T11:33:45.678Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-advanced-validation/08-CONTEXT.md
+Last session: 2026-03-10T11:57:54.000Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-advanced-validation/08-01-SUMMARY.md
