@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 6: Constraint Validation** - Numeric, string, and size constraint validators
 - [x] **Phase 7: Composition and Conditionals** - allOf/anyOf/oneOf/not, if/then/else, and dependent keywords (completed 2026-03-09)
 - [x] **Phase 8: Advanced Validation** - patternProperties, contains, uniqueItems, and format annotation/assertion (completed 2026-03-10)
-- [ ] **Phase 9: Single-Pass Walker** - SchemaWalker orchestrating reader + schema + offset table + error collector in one pass
+- [x] **Phase 9: Single-Pass Walker** - SchemaWalker orchestrating reader + schema + offset table + error collector in one pass (completed 2026-03-10)
 - [ ] **Phase 10: Quality and Packaging** - BenchmarkDotNet zero-allocation proof, allocation regression tests, and NuGet packaging
 
 ## Phase Details
@@ -188,5 +188,5 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 6. Constraint Validation | 1/2 | In progress | - |
 | 7. Composition and Conditionals | 2/2 | Complete   | 2026-03-09 |
 | 8. Advanced Validation | 2/2 | Complete | 2026-03-10 |
-| 9. Single-Pass Walker | 2/3 | In Progress |  |
+| 9. Single-Pass Walker | 3/3 | Complete   | 2026-03-10 |
 | 10. Quality and Packaging | 0/0 | Not started | - |
