@@ -22,7 +22,6 @@ namespace Gluey.Contract.Json;
 ///   <item><see cref="TryParse"/> -- returns <c>bool</c> with an <c>out</c> parameter (try-pattern)</item>
 ///   <item><see cref="Parse"/> -- returns <c>ParseResult?</c> and never throws</item>
 /// </list>
-/// Full parse/validation logic will be implemented in Phase 9 (Single-Pass Walker).
 /// </para>
 /// </remarks>
 public class JsonContractSchema
