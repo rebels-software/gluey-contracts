@@ -39,7 +39,8 @@ public readonly struct ErrorCollector : IDisposable
     {
         _capacity = capacity;
         _errors = ArrayPool<ValidationError>.Shared.Rent(capacity);
-        _countHolder = new int[1];
+        _countHolder = ArrayPool<int>.Shared.Rent(1);
+        _countHolder[0] = 0;
         Array.Clear(_errors, 0, capacity);
     }
 
@@ -109,7 +110,7 @@ public readonly struct ErrorCollector : IDisposable
     public Enumerator GetEnumerator() => new Enumerator(_errors, Count);
 
     /// <summary>
-    /// Returns the rented buffer to <see cref="ArrayPool{T}"/>, clearing it first.
+    /// Returns the rented buffers to <see cref="ArrayPool{T}"/>, clearing error buffer first.
     /// Safe to call multiple times or on a default instance.
     /// </summary>
     public void Dispose()
@@ -117,6 +118,10 @@ public readonly struct ErrorCollector : IDisposable
         if (_errors is not null)
         {
             ArrayPool<ValidationError>.Shared.Return(_errors, clearArray: true);
+        }
+        if (_countHolder is not null)
+        {
+            ArrayPool<int>.Shared.Return(_countHolder);
         }
     }
 

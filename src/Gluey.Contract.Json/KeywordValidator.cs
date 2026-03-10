@@ -79,6 +79,15 @@ internal static class KeywordValidator
     }
 
     /// <summary>
+    /// Zero-allocation type check. Returns true if the token type matches. No error reporting.
+    /// </summary>
+    internal static bool CheckType(SchemaType expected, JsonByteTokenType tokenType, bool isInteger)
+    {
+        SchemaType actual = MapTokenToSchemaType(tokenType, isInteger);
+        return (expected & actual) != 0;
+    }
+
+    /// <summary>
     /// Validates the "enum" keyword. Returns true if the token bytes match any enum value
     /// (byte-exact first, numeric decimal fallback for numbers).
     /// </summary>
@@ -134,6 +143,39 @@ internal static class KeywordValidator
             path,
             ValidationErrorCode.ConstMismatch,
             ValidationErrorMessages.Get(ValidationErrorCode.ConstMismatch)));
+        return false;
+    }
+
+    /// <summary>
+    /// Zero-allocation enum check. Returns true if any value matches. No error reporting.
+    /// </summary>
+    internal static bool CheckEnum(byte[][] enumValues, ReadOnlySpan<byte> tokenBytes, bool tokenIsNumber)
+    {
+        for (int i = 0; i < enumValues.Length; i++)
+        {
+            if (tokenBytes.SequenceEqual(enumValues[i]))
+                return true;
+        }
+        if (tokenIsNumber)
+        {
+            for (int i = 0; i < enumValues.Length; i++)
+            {
+                if (TryNumericEqual(tokenBytes, enumValues[i], out bool equal) && equal)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Zero-allocation const check. Returns true if value matches. No error reporting.
+    /// </summary>
+    internal static bool CheckConst(byte[] expected, ReadOnlySpan<byte> tokenBytes, bool tokenIsNumber)
+    {
+        if (tokenBytes.SequenceEqual(expected))
+            return true;
+        if (tokenIsNumber && TryNumericEqual(tokenBytes, expected, out bool equal) && equal)
+            return true;
         return false;
     }
 

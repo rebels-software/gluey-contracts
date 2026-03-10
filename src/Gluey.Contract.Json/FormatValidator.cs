@@ -13,6 +13,26 @@ namespace Gluey.Contract.Json;
 internal static class FormatValidator
 {
     /// <summary>
+    /// Zero-allocation format check. Returns true if valid. No error reporting.
+    /// </summary>
+    internal static bool Check(string format, ReadOnlySpan<byte> valueBytes)
+    {
+        return format switch
+        {
+            "date-time" => ValidateDateTime(valueBytes),
+            "date" => ValidateDate(valueBytes),
+            "time" => ValidateTime(valueBytes),
+            "email" => ValidateEmail(valueBytes),
+            "uuid" => ValidateUuid(valueBytes),
+            "uri" => ValidateUri(valueBytes),
+            "ipv4" => ValidateIpv4(valueBytes),
+            "ipv6" => ValidateIpv6(valueBytes),
+            "json-pointer" => ValidateJsonPointer(valueBytes),
+            _ => true
+        };
+    }
+
+    /// <summary>
     /// Validates a value against the specified format string.
     /// Unknown formats pass silently (return <c>true</c>).
     /// </summary>

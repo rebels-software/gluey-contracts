@@ -8,10 +8,10 @@ namespace Gluey.Contract.Json.Tests.AllocationTests;
 /// Allocation regression tests for TryParse paths.
 /// Asserts that TryParse allocations stay within a tight budget.
 ///
-/// Known allocations per parse call:
-/// - ErrorCollector: int[1] count holder (~32 bytes)
-/// - ArrayBuffer: class instance for byte[] path (~48 bytes)
-/// These are structural allocations from the walker; the validation/indexing paths are zero-alloc.
+/// After pooling optimization, both paths should be zero-allocation after warmup:
+/// - ErrorCollector uses ArrayPool (no heap alloc after warmup)
+/// - ArrayBuffer is pooled via [ThreadStatic] cache (no heap alloc after warmup)
+/// - OffsetTable uses ArrayPool (no heap alloc after warmup)
 /// Tests guard against regression by enforcing a ceiling.
 /// </summary>
 [TestFixture]
@@ -22,15 +22,15 @@ public class TryParseAllocationTests
 
     /// <summary>
     /// Allocation budget for byte[] TryParse path.
-    /// Accounts for ErrorCollector int[1] + ArrayBuffer class instance.
+    /// After ArrayBuffer pooling: zero heap allocation expected after warmup.
     /// </summary>
-    private const long ByteArrayBudget = 1024;
+    private const long ByteArrayBudget = 64;
 
     /// <summary>
     /// Allocation budget for ReadOnlySpan TryParse (validate-only) path.
-    /// Accounts for ErrorCollector int[1] only (no ArrayBuffer/OffsetTable on span path).
+    /// After zero-allocation optimization: zero heap allocation expected.
     /// </summary>
-    private const long SpanBudget = 512;
+    private const long SpanBudget = 64;
 
     private const string SchemaJson = """
         {
@@ -75,7 +75,7 @@ public class TryParseAllocationTests
         });
 
         bytes.Should().BeLessThan(ByteArrayBudget,
-            "TryParse(byte[]) allocations should stay within budget (ErrorCollector int[1] + ArrayBuffer instance)");
+            "TryParse(byte[]) allocations should be zero after warmup (ArrayBuffer pooled, ArrayPool cached)");
     }
 
     [Test]
@@ -88,6 +88,6 @@ public class TryParseAllocationTests
         });
 
         bytes.Should().BeLessThan(SpanBudget,
-            "TryParse(ReadOnlySpan<byte>) allocations should stay within budget (ErrorCollector int[1] only)");
+            "TryParse(ReadOnlySpan<byte>) allocations should be zero after warmup (ArrayPool cached)");
     }
 }
