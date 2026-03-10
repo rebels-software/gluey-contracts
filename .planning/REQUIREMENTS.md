@@ -46,8 +46,8 @@
 - [x] **VALD-12**: patternProperties and propertyNames
 - [x] **VALD-13**: contains, minContains, maxContains
 - [x] **VALD-14**: uniqueItems with zero-allocation hashing strategy
-- [ ] **VALD-15**: Format annotation by default, opt-in format assertion
-- [ ] **VALD-16**: Common format validators: date-time, date, time, email, uuid, uri, ipv4, ipv6, json-pointer
+- [x] **VALD-15**: Format annotation by default, opt-in format assertion
+- [x] **VALD-16**: Common format validators: date-time, date, time, email, uuid, uri, ipv4, ipv6, json-pointer
 - [x] **VALD-17**: All errors collected per parse (not fail-fast), configurable max count
 
 ### Integration
@@ -133,8 +133,8 @@
 | VALD-12 | Phase 8: Advanced Validation | Complete |
 | VALD-13 | Phase 8: Advanced Validation | Complete |
 | VALD-14 | Phase 8: Advanced Validation | Complete |
-| VALD-15 | Phase 8: Advanced Validation | Pending |
-| VALD-16 | Phase 8: Advanced Validation | Pending |
+| VALD-15 | Phase 8: Advanced Validation | Complete |
+| VALD-16 | Phase 8: Advanced Validation | Complete |
 | INTG-01 | Phase 9: Single-Pass Walker | Pending |
 | INTG-02 | Phase 9: Single-Pass Walker | Pending |
 | INTG-03 | Phase 9: Single-Pass Walker | Pending |
