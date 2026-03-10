@@ -42,11 +42,18 @@ public class JsonContractSchema
     /// </summary>
     internal SchemaNode Root => _root;
 
-    private JsonContractSchema(SchemaNode root, Dictionary<string, int> nameToOrdinal, int propertyCount)
+    /// <summary>
+    /// Whether the <c>format</c> keyword should produce validation errors (assertion mode).
+    /// When <c>false</c> (default), format is treated as an annotation only.
+    /// </summary>
+    internal bool AssertFormat { get; }
+
+    private JsonContractSchema(SchemaNode root, Dictionary<string, int> nameToOrdinal, int propertyCount, bool assertFormat = false)
     {
         _root = root;
         _nameToOrdinal = nameToOrdinal;
         PropertyCount = propertyCount;
+        AssertFormat = assertFormat;
     }
 
     // ── Static factory methods (TryLoad / Load) ──────────────────────
@@ -64,7 +71,7 @@ public class JsonContractSchema
     /// Pass <c>null</c> (or omit) when no cross-schema references are needed.
     /// </param>
     /// <returns><c>true</c> if the schema was loaded successfully; otherwise <c>false</c>.</returns>
-    public static bool TryLoad(ReadOnlySpan<byte> utf8Json, out JsonContractSchema? schema, SchemaRegistry? registry = null)
+    public static bool TryLoad(ReadOnlySpan<byte> utf8Json, out JsonContractSchema? schema, SchemaRegistry? registry = null, SchemaOptions? options = null)
     {
         var root = JsonSchemaLoader.Load(utf8Json);
         if (root is null)
@@ -81,7 +88,7 @@ public class JsonContractSchema
         }
 
         var (nameToOrdinal, propertyCount) = SchemaIndexer.AssignOrdinals(root);
-        schema = new JsonContractSchema(root, nameToOrdinal, propertyCount);
+        schema = new JsonContractSchema(root, nameToOrdinal, propertyCount, options?.AssertFormat ?? false);
         return true;
     }
 
@@ -94,9 +101,9 @@ public class JsonContractSchema
     /// Optional <see cref="SchemaRegistry"/> for resolving cross-schema <c>$ref</c> URIs.
     /// </param>
     /// <returns>A <see cref="JsonContractSchema"/> or <c>null</c> if loading failed.</returns>
-    public static JsonContractSchema? Load(ReadOnlySpan<byte> utf8Json, SchemaRegistry? registry = null)
+    public static JsonContractSchema? Load(ReadOnlySpan<byte> utf8Json, SchemaRegistry? registry = null, SchemaOptions? options = null)
     {
-        return TryLoad(utf8Json, out var schema, registry) ? schema : null;
+        return TryLoad(utf8Json, out var schema, registry, options) ? schema : null;
     }
 
     /// <summary>
@@ -111,10 +118,10 @@ public class JsonContractSchema
     /// Optional <see cref="SchemaRegistry"/> for resolving cross-schema <c>$ref</c> URIs.
     /// </param>
     /// <returns><c>true</c> if the schema was loaded successfully; otherwise <c>false</c>.</returns>
-    public static bool TryLoad(string json, out JsonContractSchema? schema, SchemaRegistry? registry = null)
+    public static bool TryLoad(string json, out JsonContractSchema? schema, SchemaRegistry? registry = null, SchemaOptions? options = null)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
-        return TryLoad(bytes, out schema, registry);
+        return TryLoad(bytes, out schema, registry, options);
     }
 
     /// <summary>
@@ -126,10 +133,10 @@ public class JsonContractSchema
     /// Optional <see cref="SchemaRegistry"/> for resolving cross-schema <c>$ref</c> URIs.
     /// </param>
     /// <returns>A <see cref="JsonContractSchema"/> or <c>null</c> if loading failed.</returns>
-    public static JsonContractSchema? Load(string json, SchemaRegistry? registry = null)
+    public static JsonContractSchema? Load(string json, SchemaRegistry? registry = null, SchemaOptions? options = null)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
-        return Load(bytes, registry);
+        return Load(bytes, registry, options);
     }
 
     // ── Instance parse methods (stubs until Phase 9) ─────────────────
