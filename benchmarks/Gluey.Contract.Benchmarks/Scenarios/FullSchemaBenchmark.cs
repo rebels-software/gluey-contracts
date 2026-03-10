@@ -1,6 +1,7 @@
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using Json.Schema;
 using Gluey.Contract.Json;
 using Gluey.Contract.Benchmarks.Payloads;
 
@@ -16,6 +17,7 @@ namespace Gluey.Contract.Benchmarks.Scenarios;
 public class FullSchemaBenchmark
 {
     private JsonContractSchema _schema = null!;
+    private JsonSchema _jsonSchema = null!;
     private byte[] _smallPayload = null!;
     private byte[] _mediumPayload = null!;
     private byte[] _largePayload = null!;
@@ -70,6 +72,7 @@ public class FullSchemaBenchmark
     {
         _schema = JsonContractSchema.Load(SchemaJson)
             ?? throw new InvalidOperationException("Failed to load full schema");
+        _jsonSchema = JsonSchema.FromText(SchemaJson);
 
         _smallPayload = PayloadGenerator.GenerateFullSchema(100);
         _mediumPayload = PayloadGenerator.GenerateFullSchema(5_000);
@@ -128,7 +131,7 @@ public class FullSchemaBenchmark
         return ok;
     }
 
-    // ── System.Text.Json baseline ──
+    // ── System.Text.Json baseline (parse only, no validation) ──
 
     [Benchmark(Baseline = true)]
     public void StjDeserialize_Small()
@@ -146,5 +149,28 @@ public class FullSchemaBenchmark
     public void StjDeserialize_Large()
     {
         using var doc = JsonDocument.Parse(_largePayload);
+    }
+
+    // ── JsonSchema.Net baseline (parse + validate -- two-pass approach) ──
+
+    [Benchmark]
+    public EvaluationResults StjValidate_Small()
+    {
+        using var doc = JsonDocument.Parse(_smallPayload);
+        return _jsonSchema.Evaluate(doc.RootElement);
+    }
+
+    [Benchmark]
+    public EvaluationResults StjValidate_Medium()
+    {
+        using var doc = JsonDocument.Parse(_mediumPayload);
+        return _jsonSchema.Evaluate(doc.RootElement);
+    }
+
+    [Benchmark]
+    public EvaluationResults StjValidate_Large()
+    {
+        using var doc = JsonDocument.Parse(_largePayload);
+        return _jsonSchema.Evaluate(doc.RootElement);
     }
 }

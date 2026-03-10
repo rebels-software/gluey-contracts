@@ -18,6 +18,11 @@ internal struct WalkResult
 /// <summary>
 /// Internal ref struct that performs single-pass JSON validation and offset table construction.
 /// Wraps <see cref="JsonByteReader"/> and dispatches to all keyword validators in one forward pass.
+///
+/// Performance-critical: designed for zero per-property heap allocation on the hot path.
+/// Uses pre-compiled PropertyLookup tables for UTF8 byte matching (no string conversion),
+/// stackalloc bitsets for required-property tracking, and bool-returning validation helpers
+/// to avoid temporary ErrorCollector allocation.
 /// </summary>
 internal ref struct SchemaWalker
 {
@@ -52,7 +57,7 @@ internal ref struct SchemaWalker
         _structuralError = false;
         _errors = new ErrorCollector();
         _table = _buildOffsets ? new OffsetTable(propertyCount) : default;
-        _arrayBuffer = _buildOffsets ? new ArrayBuffer() : null;
+        _arrayBuffer = _buildOffsets ? ArrayBuffer.Rent(16, propertyCount) : null;
         _capturedChildren = null;
     }
 
@@ -278,14 +283,33 @@ internal ref struct SchemaWalker
     private bool WalkObject(SchemaNode node, string path)
     {
         bool valid = true;
-        var seenProperties = new HashSet<string>();
         int propertyCount = 0;
 
         // Track the start of this object for byte range calculation
         int objectStartOffset = _reader.ByteOffset;
 
-        // Collect child ordinals for hierarchical access (local name -> ordinal)
-        Dictionary<string, int>? childOrdinals = _buildOffsets ? new Dictionary<string, int>() : null;
+        // Required property tracking: use a stackalloc bitset instead of HashSet<string>
+        int requiredCount = node.RequiredCount;
+        Span<bool> requiredSeen = requiredCount <= 64
+            ? stackalloc bool[requiredCount]
+            : new bool[requiredCount];
+        if (requiredCount > 0)
+            requiredSeen.Clear();
+
+        // For dependentRequired/dependentSchemas/propertyNames/composition, we may need
+        // a HashSet<string> but ONLY if those features are actually used on this node.
+        // Most schemas don't use these, so this avoids allocation in the common case.
+        HashSet<string>? seenPropertyNames = null;
+        if (node.DependentRequired is not null || node.DependentSchemas is not null ||
+            node.PropertyNames is not null ||
+            node.AllOf is not null || node.AnyOf is not null || node.OneOf is not null || node.Not is not null ||
+            node.If is not null)
+        {
+            seenPropertyNames = new HashSet<string>();
+        }
+
+        // Pre-resolved property lookup table (pre-computed at schema load time)
+        var lookup = (node.ResolvedRef ?? node).PropertyLookup;
 
         while (true)
         {
@@ -306,20 +330,84 @@ internal ref struct SchemaWalker
                 return false;
             }
 
-            // Get property name
-            string name = Encoding.UTF8.GetString(GetValueBytes(_reader.ByteOffset, _reader.ByteLength));
-            seenProperties.Add(name);
             propertyCount++;
 
-            string childPath = SchemaNode.BuildChildPath(path, name);
+            // Get property name as UTF8 span (no string allocation)
+            ReadOnlySpan<byte> nameBytes = GetValueBytes(_reader.ByteOffset, _reader.ByteLength);
+
+            // Look up in pre-compiled PropertyLookup (UTF8 byte comparison, no string allocation)
+            SchemaNode.PropertyEntry? matchedEntry = null;
+            if (lookup is not null)
+            {
+                for (int i = 0; i < lookup.Length; i++)
+                {
+                    if (nameBytes.SequenceEqual(lookup[i].Utf8Name))
+                    {
+                        matchedEntry = lookup[i];
+                        break;
+                    }
+                }
+            }
+
+            // Track required property (bitset, no allocation)
+            if (matchedEntry is not null && matchedEntry.RequiredIndex >= 0)
+            {
+                requiredSeen[matchedEntry.RequiredIndex] = true;
+            }
+
+            // For features that need string names, decode only when needed
+            string? name = null;
+            string? childPath = null;
+            bool isKnownProperty = matchedEntry is not null;
+
+            if (isKnownProperty)
+            {
+                // Known property: use pre-computed strings (no allocation)
+                name = matchedEntry!.Name;
+                childPath = matchedEntry.ChildPath;
+            }
 
             // Find child schema
-            SchemaNode? childSchema = null;
-            node.Properties?.TryGetValue(name, out childSchema);
+            SchemaNode? childSchema = matchedEntry?.Child;
 
-            // Check additionalProperties
-            if (childSchema is null)
+            // For unknown properties, check required using pre-computed UTF8 bytes (no string allocation)
+            if (!isKnownProperty && node.RequiredUtf8 is not null)
             {
+                for (int r = 0; r < node.RequiredUtf8.Length; r++)
+                {
+                    if (nameBytes.SequenceEqual(node.RequiredUtf8[r]))
+                    {
+                        requiredSeen[r] = true;
+                        break;
+                    }
+                }
+            }
+
+            // For features that need string names, decode only when needed
+            bool needsNameString = !isKnownProperty && (
+                seenPropertyNames is not null ||
+                (node.AdditionalProperties is not null && node.AdditionalProperties.BooleanSchema == false) ||
+                node.CompiledPatternProperties is not null);
+
+            if (!isKnownProperty && needsNameString)
+            {
+                name = Encoding.UTF8.GetString(nameBytes);
+            }
+
+            // Add to seenPropertyNames only when needed (for advanced features)
+            if (seenPropertyNames is not null)
+            {
+                name ??= Encoding.UTF8.GetString(nameBytes);
+                seenPropertyNames.Add(name);
+            }
+
+            // Check additionalProperties for unknown properties
+            if (childSchema is null && node.AdditionalProperties is not null
+                && node.AdditionalProperties.BooleanSchema == false)
+            {
+                // Need name for error message
+                name ??= Encoding.UTF8.GetString(nameBytes);
+                childPath ??= SchemaNode.BuildChildPath(path, name);
                 if (!KeywordValidator.ValidateAdditionalProperty(name, node.Properties, node.AdditionalProperties, path, _errors))
                     valid = false;
             }
@@ -328,6 +416,7 @@ internal ref struct SchemaWalker
             SchemaNode? patternSchema = null;
             if (node.CompiledPatternProperties is not null)
             {
+                name ??= Encoding.UTF8.GetString(nameBytes);
                 foreach (var (pattern, schema) in node.CompiledPatternProperties)
                 {
                     if (pattern.IsMatch(name))
@@ -350,12 +439,12 @@ internal ref struct SchemaWalker
             int valueOffset = _reader.ByteOffset;
             int valueLength = _reader.ByteLength;
 
-            // Track child ordinal for hierarchical access
-            int resolvedChildOrdinal = -1;
-            if (childOrdinals is not null && _nameToOrdinal!.TryGetValue(childPath, out int childOrd))
+            // Resolve ordinal from pre-compiled entry or nameToOrdinal lookup
+            int resolvedChildOrdinal = matchedEntry?.Ordinal ?? -1;
+            if (resolvedChildOrdinal < 0 && _buildOffsets && childPath is not null
+                && _nameToOrdinal!.TryGetValue(childPath, out int fallbackOrd))
             {
-                childOrdinals[name] = childOrd;
-                resolvedChildOrdinal = childOrd;
+                resolvedChildOrdinal = fallbackOrd;
             }
 
             // Determine effective schema for the value
@@ -375,7 +464,7 @@ internal ref struct SchemaWalker
 
             if (effectiveSchema is not null)
             {
-                // If additionalProperties is a schema (not boolean false), also validate against it
+                // If additionalProperties is a schema (not boolean false/true), validate against it
                 // for unknown properties
                 if (childSchema is null && node.AdditionalProperties is not null
                     && node.AdditionalProperties.BooleanSchema != false
@@ -385,16 +474,34 @@ internal ref struct SchemaWalker
                     effectiveSchema = node.AdditionalProperties;
                 }
 
-                if (!WalkValue(effectiveSchema, childPath, childArrayOrd))
-                    valid = false;
+                // Fast path: for unknown properties with simple schemas, try to validate
+                // without allocating path strings. Only allocate if validation fails.
+                if (!isKnownProperty && childPath is null && TryWalkValueFastPath(effectiveSchema, childArrayOrd))
+                {
+                    // Validated successfully without path allocation
+                }
+                else
+                {
+                    childPath ??= LazyBuildChildPath(path, name, nameBytes);
+                    if (!WalkValue(effectiveSchema, childPath, childArrayOrd))
+                        valid = false;
+                }
             }
             else if (node.AdditionalProperties is not null
                      && node.AdditionalProperties.BooleanSchema != false
                      && node.AdditionalProperties.BooleanSchema != true)
             {
                 // additionalProperties is a schema -- validate against it
-                if (!WalkValue(node.AdditionalProperties, childPath))
-                    valid = false;
+                if (!isKnownProperty && childPath is null && TryWalkValueFastPath(node.AdditionalProperties, -1))
+                {
+                    // Validated successfully without path allocation
+                }
+                else
+                {
+                    childPath ??= LazyBuildChildPath(path, name, nameBytes);
+                    if (!WalkValue(node.AdditionalProperties, childPath))
+                        valid = false;
+                }
             }
             else
             {
@@ -403,55 +510,72 @@ internal ref struct SchemaWalker
             }
 
             // Store in OffsetTable if applicable
-            if (_buildOffsets && _nameToOrdinal!.TryGetValue(childPath, out int ordinal))
+            if (_buildOffsets && resolvedChildOrdinal >= 0)
             {
-                // Determine if this child has its own children (for hierarchical access)
-                var resolvedChild = (childSchema?.ResolvedRef ?? childSchema);
-                Dictionary<string, int>? grandchildOrdinals = null;
-                ArrayBuffer? childArrayBuffer = null;
-                int childArrayOrdinal = -1;
+                childPath ??= LazyBuildChildPath(path, name, nameBytes);
 
-                if (resolvedChild?.Properties is not null)
+                // Use pre-computed grandchild ordinals from PropertyEntry (no per-parse allocation)
+                Dictionary<string, int>? grandchildOrdinals = matchedEntry?.GrandchildOrdinals;
+
+                // If not from lookup, fall back to computing for unknown properties with schemas
+                if (grandchildOrdinals is null && matchedEntry is null)
                 {
-                    // Build local name -> ordinal mapping for this child's children
-                    grandchildOrdinals = new Dictionary<string, int>();
-                    foreach (var (gcName, _) in resolvedChild.Properties)
+                    var resolvedChild = (childSchema?.ResolvedRef ?? childSchema);
+                    if (resolvedChild?.Properties is not null)
                     {
-                        string gcPath = SchemaNode.BuildChildPath(childPath, gcName);
-                        if (_nameToOrdinal!.TryGetValue(gcPath, out int gcOrd))
+                        grandchildOrdinals = new Dictionary<string, int>();
+                        foreach (var (gcName, _) in resolvedChild.Properties)
                         {
-                            grandchildOrdinals[gcName] = gcOrd;
+                            string gcPath = SchemaNode.BuildChildPath(childPath, gcName);
+                            if (_nameToOrdinal!.TryGetValue(gcPath, out int gcOrd))
+                            {
+                                grandchildOrdinals[gcName] = gcOrd;
+                            }
                         }
                     }
                 }
 
                 // Check if this child is an array type with items
-                if (resolvedChild is not null &&
-                    (resolvedChild.Items is not null || resolvedChild.PrefixItems is not null) &&
+                ArrayBuffer? childArrayBuffer = null;
+                int childArrayOrdinal = -1;
+                var resolvedChildNode = (childSchema?.ResolvedRef ?? childSchema);
+                if (resolvedChildNode is not null &&
+                    (resolvedChildNode.Items is not null || resolvedChildNode.PrefixItems is not null) &&
                     _arrayBuffer is not null)
                 {
                     childArrayBuffer = _arrayBuffer;
-                    childArrayOrdinal = ordinal; // use this property's ordinal as its array ordinal
+                    childArrayOrdinal = resolvedChildOrdinal;
                 }
 
                 var property = new ParsedProperty(_data!, valueOffset, valueLength, childPath,
                     _table, grandchildOrdinals, childArrayBuffer, childArrayOrdinal);
-                _table.Set(ordinal, property);
+                _table.Set(resolvedChildOrdinal, property);
             }
 
             // Also capture for array element child snapshotting if active
             if (_capturedChildren is not null)
             {
+                childPath ??= LazyBuildChildPath(path, name, nameBytes);
+                name ??= Encoding.UTF8.GetString(nameBytes);
                 var property = new ParsedProperty(_data!, valueOffset, valueLength, childPath);
                 _capturedChildren[name] = property;
             }
         }
 
-        // Post-object validations
-        if (node.Required is not null)
+        // Post-object validations: required (using bitset, no HashSet lookup)
+        if (requiredCount > 0)
         {
-            if (!KeywordValidator.ValidateRequired(node.Required, seenProperties, path, _errors))
-                valid = false;
+            for (int r = 0; r < requiredCount; r++)
+            {
+                if (!requiredSeen[r])
+                {
+                    _errors.Add(new ValidationError(
+                        SchemaNode.BuildChildPath(path, node.Required![r]),
+                        ValidationErrorCode.RequiredMissing,
+                        ValidationErrorMessages.Get(ValidationErrorCode.RequiredMissing)));
+                    valid = false;
+                }
+            }
         }
 
         if (node.MinProperties.HasValue)
@@ -467,22 +591,22 @@ internal ref struct SchemaWalker
         }
 
         // DependentRequired
-        if (node.DependentRequired is not null)
+        if (node.DependentRequired is not null && seenPropertyNames is not null)
         {
-            if (!DependencyValidator.ValidateDependentRequired(node.DependentRequired, seenProperties, path, _errors))
+            if (!DependencyValidator.ValidateDependentRequired(node.DependentRequired, seenPropertyNames, path, _errors))
                 valid = false;
         }
 
         // DependentSchemas
-        if (node.DependentSchemas is not null)
+        if (node.DependentSchemas is not null && seenPropertyNames is not null)
         {
             foreach (var (trigger, schema) in node.DependentSchemas)
             {
-                if (seenProperties.Contains(trigger))
+                if (seenPropertyNames.Contains(trigger))
                 {
                     // For dependent schemas, we validate structural constraints
                     // (required, minProperties etc.) from the subschema against captured state
-                    bool subValid = ValidateObjectSubschema(schema, seenProperties, propertyCount, path);
+                    bool subValid = ValidateObjectSubschema(schema, seenPropertyNames, propertyCount, path);
                     if (!DependencyValidator.ValidateDependentSchema(subValid, path, _errors))
                         valid = false;
                 }
@@ -490,21 +614,24 @@ internal ref struct SchemaWalker
         }
 
         // PropertyNames validation
-        if (node.PropertyNames is not null)
+        if (node.PropertyNames is not null && seenPropertyNames is not null)
         {
-            foreach (var name in seenProperties)
+            foreach (var propName in seenPropertyNames)
             {
-                bool nameValid = ValidatePropertyName(node.PropertyNames, name, path);
-                if (!ObjectValidator.ValidatePropertyName(nameValid, name, path, _errors))
+                bool nameValid = ValidatePropertyName(node.PropertyNames, propName, path);
+                if (!ObjectValidator.ValidatePropertyName(nameValid, propName, path, _errors))
                     valid = false;
             }
         }
 
         // Composition at object level
-        ValidateCompositionForObject(node, seenProperties, propertyCount, path, ref valid);
+        if (seenPropertyNames is not null)
+        {
+            ValidateCompositionForObject(node, seenPropertyNames, propertyCount, path, ref valid);
 
-        // Conditionals at object level
-        ValidateConditionalsForObject(node, seenProperties, propertyCount, path, ref valid);
+            // Conditionals at object level
+            ValidateConditionalsForObject(node, seenPropertyNames, propertyCount, path, ref valid);
+        }
 
         return valid;
     }
@@ -710,7 +837,7 @@ internal ref struct SchemaWalker
 
     /// <summary>
     /// Validates a scalar value against a subschema without re-reading tokens.
-    /// Uses a temporary ErrorCollector so subschema errors don't leak into main collector.
+    /// Uses no temporary ErrorCollector -- only returns bool indicating pass/fail.
     /// </summary>
     private bool ValidateScalarAgainstSchema(
         SchemaNode subNode, JsonByteTokenType tokenType, bool isInteger,
@@ -721,31 +848,28 @@ internal ref struct SchemaWalker
         if (effective.BooleanSchema.HasValue)
             return effective.BooleanSchema.Value;
 
-        using var tempErrors = new ErrorCollector();
-        bool valid = true;
-
         // Type
         if (effective.Type.HasValue)
         {
-            if (!KeywordValidator.ValidateType(effective.Type.Value, tokenType, isInteger, path, tempErrors))
-                valid = false;
+            if (!KeywordValidator.CheckType(effective.Type.Value, tokenType, isInteger))
+                return false;
         }
 
         // Enum/Const (use rawJsonBytes for proper comparison)
         bool isNumber = tokenType == JsonByteTokenType.Number;
         if (effective.Enum is not null)
         {
-            if (!KeywordValidator.ValidateEnum(effective.Enum, rawJsonBytes, isNumber, path, tempErrors))
-                valid = false;
+            if (!KeywordValidator.CheckEnum(effective.Enum, rawJsonBytes, isNumber))
+                return false;
         }
         if (effective.Const is not null)
         {
-            if (!KeywordValidator.ValidateConst(effective.Const, rawJsonBytes, isNumber, path, tempErrors))
-                valid = false;
+            if (!KeywordValidator.CheckConst(effective.Const, rawJsonBytes, isNumber))
+                return false;
         }
 
         // Numeric constraints
-        if (valid && isNumber)
+        if (isNumber)
         {
             if (effective.Minimum is not null || effective.Maximum is not null ||
                 effective.ExclusiveMinimum is not null || effective.ExclusiveMaximum is not null ||
@@ -753,22 +877,22 @@ internal ref struct SchemaWalker
             {
                 if (NumericValidator.TryParseDecimal(valueBytes, out decimal numValue))
                 {
-                    if (effective.Minimum.HasValue && !NumericValidator.ValidateMinimum(numValue, effective.Minimum.Value, path, tempErrors))
-                        valid = false;
-                    if (effective.Maximum.HasValue && !NumericValidator.ValidateMaximum(numValue, effective.Maximum.Value, path, tempErrors))
-                        valid = false;
-                    if (effective.ExclusiveMinimum.HasValue && !NumericValidator.ValidateExclusiveMinimum(numValue, effective.ExclusiveMinimum.Value, path, tempErrors))
-                        valid = false;
-                    if (effective.ExclusiveMaximum.HasValue && !NumericValidator.ValidateExclusiveMaximum(numValue, effective.ExclusiveMaximum.Value, path, tempErrors))
-                        valid = false;
-                    if (effective.MultipleOf.HasValue && !NumericValidator.ValidateMultipleOf(numValue, effective.MultipleOf.Value, path, tempErrors))
-                        valid = false;
+                    if (effective.Minimum.HasValue && numValue < effective.Minimum.Value)
+                        return false;
+                    if (effective.Maximum.HasValue && numValue > effective.Maximum.Value)
+                        return false;
+                    if (effective.ExclusiveMinimum.HasValue && numValue <= effective.ExclusiveMinimum.Value)
+                        return false;
+                    if (effective.ExclusiveMaximum.HasValue && numValue >= effective.ExclusiveMaximum.Value)
+                        return false;
+                    if (effective.MultipleOf.HasValue && numValue % effective.MultipleOf.Value != 0)
+                        return false;
                 }
             }
         }
 
         // String constraints
-        if (valid && tokenType == JsonByteTokenType.String)
+        if (tokenType == JsonByteTokenType.String)
         {
             if (effective.MinLength is not null || effective.MaxLength is not null || effective.CompiledPattern is not null)
             {
@@ -776,20 +900,20 @@ internal ref struct SchemaWalker
                 if (effective.MinLength.HasValue)
                 {
                     codepointCount = StringValidator.CountCodepoints(valueBytes);
-                    if (!StringValidator.ValidateMinLength(codepointCount, effective.MinLength.Value, path, tempErrors))
-                        valid = false;
+                    if (codepointCount < effective.MinLength.Value)
+                        return false;
                 }
                 if (effective.MaxLength.HasValue)
                 {
                     if (codepointCount < 0) codepointCount = StringValidator.CountCodepoints(valueBytes);
-                    if (!StringValidator.ValidateMaxLength(codepointCount, effective.MaxLength.Value, path, tempErrors))
-                        valid = false;
+                    if (codepointCount > effective.MaxLength.Value)
+                        return false;
                 }
                 if (effective.CompiledPattern is not null)
                 {
                     string strValue = Encoding.UTF8.GetString(valueBytes);
-                    if (!StringValidator.ValidatePattern(strValue, effective.CompiledPattern, path, tempErrors))
-                        valid = false;
+                    if (!effective.CompiledPattern.IsMatch(strValue))
+                        return false;
                 }
             }
         }
@@ -797,11 +921,11 @@ internal ref struct SchemaWalker
         // Format
         if (_assertFormat && effective.Format is not null && tokenType == JsonByteTokenType.String)
         {
-            if (!FormatValidator.Validate(effective.Format, valueBytes, path, tempErrors))
-                valid = false;
+            if (!FormatValidator.Check(effective.Format, valueBytes))
+                return false;
         }
 
-        return valid;
+        return true;
     }
 
     // ── Object composition/conditional helpers ───────────────────────────
@@ -878,7 +1002,7 @@ internal ref struct SchemaWalker
 
     /// <summary>
     /// Validates an object's captured state against a subschema without re-reading tokens.
-    /// Used for composition, conditionals, and dependent schemas at the object level.
+    /// Uses no temporary ErrorCollector -- only returns bool indicating pass/fail.
     /// </summary>
     private bool ValidateObjectSubschema(
         SchemaNode subNode, HashSet<string> seenProperties, int propertyCount, string path)
@@ -888,43 +1012,46 @@ internal ref struct SchemaWalker
         if (effective.BooleanSchema.HasValue)
             return effective.BooleanSchema.Value;
 
-        using var tempErrors = new ErrorCollector();
-        bool valid = true;
-
         // Type check for object
         if (effective.Type.HasValue)
         {
-            if (!KeywordValidator.ValidateType(effective.Type.Value, JsonByteTokenType.StartObject, false, path, tempErrors))
-                valid = false;
+            if (!KeywordValidator.CheckType(effective.Type.Value, JsonByteTokenType.StartObject, false))
+                return false;
         }
 
         // Required
         if (effective.Required is not null)
         {
-            if (!KeywordValidator.ValidateRequired(effective.Required, seenProperties, path, tempErrors))
-                valid = false;
+            foreach (var req in effective.Required)
+            {
+                if (!seenProperties.Contains(req))
+                    return false;
+            }
         }
 
         // MinProperties / MaxProperties
-        if (effective.MinProperties.HasValue)
-        {
-            if (!ObjectValidator.ValidateMinProperties(propertyCount, effective.MinProperties.Value, path, tempErrors))
-                valid = false;
-        }
-        if (effective.MaxProperties.HasValue)
-        {
-            if (!ObjectValidator.ValidateMaxProperties(propertyCount, effective.MaxProperties.Value, path, tempErrors))
-                valid = false;
-        }
+        if (effective.MinProperties.HasValue && propertyCount < effective.MinProperties.Value)
+            return false;
+        if (effective.MaxProperties.HasValue && propertyCount > effective.MaxProperties.Value)
+            return false;
 
         // DependentRequired
         if (effective.DependentRequired is not null)
         {
-            if (!DependencyValidator.ValidateDependentRequired(effective.DependentRequired, seenProperties, path, tempErrors))
-                valid = false;
+            foreach (var (trigger, deps) in effective.DependentRequired)
+            {
+                if (seenProperties.Contains(trigger))
+                {
+                    foreach (var dep in deps)
+                    {
+                        if (!seenProperties.Contains(dep))
+                            return false;
+                    }
+                }
+            }
         }
 
-        return valid;
+        return true;
     }
 
     // ── Array composition helpers ────────────────────────────────────────
@@ -937,7 +1064,7 @@ internal ref struct SchemaWalker
             int passCount = 0;
             foreach (var sub in node.AllOf)
             {
-                if (ValidateArraySubschema(sub, elementCount, path))
+                if (ValidateArraySubschema(sub, elementCount))
                     passCount++;
             }
             if (!CompositionValidator.ValidateAllOf(passCount, node.AllOf.Length, path, _errors))
@@ -949,7 +1076,7 @@ internal ref struct SchemaWalker
             int passCount = 0;
             foreach (var sub in node.AnyOf)
             {
-                if (ValidateArraySubschema(sub, elementCount, path))
+                if (ValidateArraySubschema(sub, elementCount))
                     passCount++;
             }
             if (!CompositionValidator.ValidateAnyOf(passCount, path, _errors))
@@ -961,7 +1088,7 @@ internal ref struct SchemaWalker
             int passCount = 0;
             foreach (var sub in node.OneOf)
             {
-                if (ValidateArraySubschema(sub, elementCount, path))
+                if (ValidateArraySubschema(sub, elementCount))
                     passCount++;
             }
             if (!CompositionValidator.ValidateOneOf(passCount, path, _errors))
@@ -970,44 +1097,43 @@ internal ref struct SchemaWalker
 
         if (node.Not is not null)
         {
-            bool subResult = ValidateArraySubschema(node.Not, elementCount, path);
+            bool subResult = ValidateArraySubschema(node.Not, elementCount);
             if (!CompositionValidator.ValidateNot(subResult, path, _errors))
                 valid = false;
         }
     }
 
-    private bool ValidateArraySubschema(SchemaNode subNode, int elementCount, string path)
+    /// <summary>
+    /// Validates array state against a subschema without allocation.
+    /// Returns bool only -- no ErrorCollector needed.
+    /// </summary>
+    private bool ValidateArraySubschema(SchemaNode subNode, int elementCount)
     {
         var effective = subNode.ResolvedRef ?? subNode;
 
         if (effective.BooleanSchema.HasValue)
             return effective.BooleanSchema.Value;
 
-        using var tempErrors = new ErrorCollector();
-        bool valid = true;
-
         if (effective.Type.HasValue)
         {
-            if (!KeywordValidator.ValidateType(effective.Type.Value, JsonByteTokenType.StartArray, false, path, tempErrors))
-                valid = false;
+            if (!KeywordValidator.CheckType(effective.Type.Value, JsonByteTokenType.StartArray, false))
+                return false;
         }
 
-        if (effective.MinItems.HasValue)
-        {
-            if (!ArrayValidator.ValidateMinItems(elementCount, effective.MinItems.Value, path, tempErrors))
-                valid = false;
-        }
-        if (effective.MaxItems.HasValue)
-        {
-            if (!ArrayValidator.ValidateMaxItems(elementCount, effective.MaxItems.Value, path, tempErrors))
-                valid = false;
-        }
+        if (effective.MinItems.HasValue && elementCount < effective.MinItems.Value)
+            return false;
+        if (effective.MaxItems.HasValue && elementCount > effective.MaxItems.Value)
+            return false;
 
-        return valid;
+        return true;
     }
 
     // ── PropertyNames helper ─────────────────────────────────────────────
 
+    /// <summary>
+    /// Validates a property name against a schema without allocation.
+    /// Returns bool only -- no ErrorCollector needed.
+    /// </summary>
     private bool ValidatePropertyName(SchemaNode nameSchema, string name, string path)
     {
         var effective = nameSchema.ResolvedRef ?? nameSchema;
@@ -1015,40 +1141,41 @@ internal ref struct SchemaWalker
         if (effective.BooleanSchema.HasValue)
             return effective.BooleanSchema.Value;
 
-        using var tempErrors = new ErrorCollector();
-        bool valid = true;
-
         // PropertyNames typically validates the name as a string value
         if (effective.Type.HasValue)
         {
-            if (!KeywordValidator.ValidateType(effective.Type.Value, JsonByteTokenType.String, false, path, tempErrors))
-                valid = false;
+            if (!KeywordValidator.CheckType(effective.Type.Value, JsonByteTokenType.String, false))
+                return false;
         }
 
         byte[] nameBytes = Encoding.UTF8.GetBytes(name);
         if (effective.MinLength.HasValue)
         {
             int cp = StringValidator.CountCodepoints(nameBytes);
-            if (!StringValidator.ValidateMinLength(cp, effective.MinLength.Value, path, tempErrors))
-                valid = false;
+            if (cp < effective.MinLength.Value)
+                return false;
         }
         if (effective.MaxLength.HasValue)
         {
             int cp = StringValidator.CountCodepoints(nameBytes);
-            if (!StringValidator.ValidateMaxLength(cp, effective.MaxLength.Value, path, tempErrors))
-                valid = false;
+            if (cp > effective.MaxLength.Value)
+                return false;
         }
         if (effective.CompiledPattern is not null)
         {
-            if (!StringValidator.ValidatePattern(name, effective.CompiledPattern, path, tempErrors))
-                valid = false;
+            if (!effective.CompiledPattern.IsMatch(name))
+                return false;
         }
 
-        return valid;
+        return true;
     }
 
     // ── Contains helper (no-error validation) ────────────────────────────
 
+    /// <summary>
+    /// Validates a value against a schema for contains checking.
+    /// No allocation -- returns bool only.
+    /// </summary>
     private bool ValidateValueAgainstSchemaNoErrors(
         SchemaNode subNode, JsonByteTokenType tokenType, int byteOffset, int byteLength, string path)
     {
@@ -1064,8 +1191,7 @@ internal ref struct SchemaWalker
             ReadOnlySpan<byte> valueBytes = GetValueBytes(byteOffset, byteLength);
             bool isInteger = isNumber && KeywordValidator.IsInteger(valueBytes);
 
-            using var tempErrors = new ErrorCollector();
-            if (!KeywordValidator.ValidateType(effective.Type.Value, tokenType, isInteger, path, tempErrors))
+            if (!KeywordValidator.CheckType(effective.Type.Value, tokenType, isInteger))
                 return false;
         }
 
@@ -1131,6 +1257,83 @@ internal ref struct SchemaWalker
             return "null"u8;
 
         return _span.Slice(offset, length);
+    }
+
+    /// <summary>
+    /// Fast-path validation for scalar values that avoids path string allocation.
+    /// Returns true if the value was successfully validated without needing a path.
+    /// Returns false if full validation with path is needed (complex type or validation failure).
+    /// </summary>
+    private bool TryWalkValueFastPath(SchemaNode node, int arrayOrdinal)
+    {
+        var effective = node.ResolvedRef ?? node;
+
+        // Boolean schemas
+        if (effective.BooleanSchema.HasValue)
+        {
+            if (effective.BooleanSchema.Value)
+            {
+                SkipCurrentValue();
+                return true;
+            }
+            return false; // Need full path for error reporting
+        }
+
+        var tokenType = _reader.TokenType;
+
+        // Only handle scalar tokens on fast path (objects/arrays need recursive walking with paths)
+        if (tokenType == JsonByteTokenType.StartObject || tokenType == JsonByteTokenType.StartArray)
+            return false;
+
+        // Check if this is a simple type-only schema (most common for additionalProperties)
+        // For simple schemas, we can validate without any string allocation
+        if (effective.Type.HasValue)
+        {
+            bool isNumber = tokenType == JsonByteTokenType.Number;
+            ReadOnlySpan<byte> valueBytes = GetValueBytes(_reader.ByteOffset, _reader.ByteLength);
+            bool isInteger = isNumber && KeywordValidator.IsInteger(valueBytes);
+
+            if (!KeywordValidator.CheckType(effective.Type.Value, tokenType, isInteger))
+                return false; // Type mismatch -- need full path for error
+
+            // If there are additional constraints beyond type, fall back to full validation
+            if (effective.Enum is not null || effective.Const is not null ||
+                effective.Minimum is not null || effective.Maximum is not null ||
+                effective.ExclusiveMinimum is not null || effective.ExclusiveMaximum is not null ||
+                effective.MultipleOf is not null ||
+                effective.MinLength is not null || effective.MaxLength is not null ||
+                effective.CompiledPattern is not null ||
+                effective.AllOf is not null || effective.AnyOf is not null ||
+                effective.OneOf is not null || effective.Not is not null ||
+                effective.If is not null ||
+                (_assertFormat && effective.Format is not null && tokenType == JsonByteTokenType.String))
+            {
+                return false; // Has additional constraints -- need full validation
+            }
+
+            // Type-only schema, type matched -- success!
+            return true;
+        }
+
+        // No type constraint at all -- schema without type validates everything
+        if (effective.Enum is null && effective.Const is null &&
+            effective.AllOf is null && effective.AnyOf is null &&
+            effective.OneOf is null && effective.Not is null && effective.If is null)
+        {
+            return true; // Empty schema -- accepts anything
+        }
+
+        return false; // Has non-type constraints -- need full validation
+    }
+
+    /// <summary>
+    /// Builds a child path lazily, converting name bytes to string if needed.
+    /// Avoids string allocation when name was already decoded.
+    /// </summary>
+    private static string LazyBuildChildPath(string parentPath, string? name, ReadOnlySpan<byte> nameBytes)
+    {
+        name ??= Encoding.UTF8.GetString(nameBytes);
+        return SchemaNode.BuildChildPath(parentPath, name);
     }
 
     private void AddStructuralError(string path)

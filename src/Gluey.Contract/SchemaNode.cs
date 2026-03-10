@@ -318,6 +318,62 @@ internal sealed class SchemaNode
         BooleanSchema = booleanSchema;
     }
 
+    // ── Pre-compiled property lookup (populated by SchemaIndexer) ────────
+
+    /// <summary>
+    /// Pre-compiled lookup entry for fast UTF8-based property resolution.
+    /// Avoids string allocation during parse by matching raw UTF8 bytes.
+    /// </summary>
+    internal sealed class PropertyEntry
+    {
+        internal readonly byte[] Utf8Name;
+        internal readonly string Name;
+        internal readonly SchemaNode Child;
+        internal readonly string ChildPath;
+        internal int Ordinal;
+
+        /// <summary>
+        /// Pre-computed child ordinals for hierarchical property access.
+        /// Maps child property names to their ordinals. Null if this property has no sub-properties.
+        /// </summary>
+        internal Dictionary<string, int>? GrandchildOrdinals;
+
+        /// <summary>
+        /// Index in the parent node's Required array, or -1 if not required.
+        /// Used for bitset-based required tracking.
+        /// </summary>
+        internal int RequiredIndex;
+
+        internal PropertyEntry(byte[] utf8Name, string name, SchemaNode child, string childPath)
+        {
+            Utf8Name = utf8Name;
+            Name = name;
+            Child = child;
+            ChildPath = childPath;
+            Ordinal = -1;
+            GrandchildOrdinals = null;
+            RequiredIndex = -1;
+        }
+    }
+
+    /// <summary>
+    /// Pre-compiled property lookup table for O(n) UTF8 byte matching.
+    /// Populated by SchemaIndexer after tree construction and ordinal assignment.
+    /// Null for nodes without properties.
+    /// </summary>
+    internal PropertyEntry[]? PropertyLookup { get; set; }
+
+    /// <summary>
+    /// Number of entries in the Required array. Used to size the required-seen bitset.
+    /// </summary>
+    internal int RequiredCount => Required?.Length ?? 0;
+
+    /// <summary>
+    /// Pre-computed UTF8 bytes of required property names.
+    /// Populated by SchemaIndexer to enable zero-allocation required tracking.
+    /// </summary>
+    internal byte[][]? RequiredUtf8 { get; set; }
+
     // ── Path building helper ─────────────────────────────────────────────
 
     /// <summary>
