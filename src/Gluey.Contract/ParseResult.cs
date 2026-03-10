@@ -20,6 +20,7 @@ public readonly struct ParseResult : IDisposable
     private readonly OffsetTable _offsetTable;
     private readonly ErrorCollector _errorCollector;
     private readonly Dictionary<string, int>? _nameToOrdinal;
+    private readonly ArrayBuffer? _arrayBuffer;
 
     /// <summary>
     /// Creates a new <see cref="ParseResult"/> wrapping the given offset table, error collector,
@@ -36,6 +37,28 @@ public readonly struct ParseResult : IDisposable
         _offsetTable = offsetTable;
         _errorCollector = errorCollector;
         _nameToOrdinal = nameToOrdinal;
+        _arrayBuffer = null;
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParseResult"/> wrapping the given offset table, error collector,
+    /// name-to-ordinal mapping, and array buffer.
+    /// </summary>
+    /// <param name="offsetTable">The parsed property storage.</param>
+    /// <param name="errorCollector">The collected validation errors.</param>
+    /// <param name="nameToOrdinal">
+    /// The schema's mapping from property names to ordinal indices.
+    /// Enables the string indexer (<c>result["name"]</c>).
+    /// </param>
+    /// <param name="arrayBuffer">
+    /// Optional array buffer for array element storage. Disposed along with other resources.
+    /// </param>
+    internal ParseResult(OffsetTable offsetTable, ErrorCollector errorCollector, Dictionary<string, int> nameToOrdinal, ArrayBuffer? arrayBuffer)
+    {
+        _offsetTable = offsetTable;
+        _errorCollector = errorCollector;
+        _nameToOrdinal = nameToOrdinal;
+        _arrayBuffer = arrayBuffer;
     }
 
     /// <summary>
@@ -89,6 +112,7 @@ public readonly struct ParseResult : IDisposable
     {
         _offsetTable.Dispose();
         _errorCollector.Dispose();
+        _arrayBuffer?.Dispose();
     }
 
     /// <summary>
