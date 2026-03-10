@@ -53,8 +53,8 @@
 ### Integration
 
 - [x] **INTG-01**: Single-pass validation + offset table construction
-- [ ] **INTG-02**: Nested property access via offset table (data["address"]["street"])
-- [ ] **INTG-03**: Array element access via offset table (data["tags"][0])
+- [x] **INTG-02**: Nested property access via offset table (data["address"]["street"])
+- [x] **INTG-03**: Array element access via offset table (data["tags"][0])
 
 ### Quality
 
@@ -136,8 +136,8 @@
 | VALD-15 | Phase 8: Advanced Validation | Complete |
 | VALD-16 | Phase 8: Advanced Validation | Complete |
 | INTG-01 | Phase 9: Single-Pass Walker | Complete |
-| INTG-02 | Phase 9: Single-Pass Walker | Pending |
-| INTG-03 | Phase 9: Single-Pass Walker | Pending |
+| INTG-02 | Phase 9: Single-Pass Walker | Complete |
+| INTG-03 | Phase 9: Single-Pass Walker | Complete |
 | QUAL-01 | Phase 10: Quality and Packaging | Pending |
 | QUAL-02 | Phase 10: Quality and Packaging | Pending |
 | QUAL-03 | Phase 10: Quality and Packaging | Pending |
