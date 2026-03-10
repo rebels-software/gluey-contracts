@@ -43,9 +43,9 @@
 - [x] **VALD-09**: allOf, anyOf, oneOf, not composition
 - [x] **VALD-10**: if / then / else conditional validation
 - [x] **VALD-11**: dependentRequired and dependentSchemas
-- [ ] **VALD-12**: patternProperties and propertyNames
-- [ ] **VALD-13**: contains, minContains, maxContains
-- [ ] **VALD-14**: uniqueItems with zero-allocation hashing strategy
+- [x] **VALD-12**: patternProperties and propertyNames
+- [x] **VALD-13**: contains, minContains, maxContains
+- [x] **VALD-14**: uniqueItems with zero-allocation hashing strategy
 - [ ] **VALD-15**: Format annotation by default, opt-in format assertion
 - [ ] **VALD-16**: Common format validators: date-time, date, time, email, uuid, uri, ipv4, ipv6, json-pointer
 - [x] **VALD-17**: All errors collected per parse (not fail-fast), configurable max count
@@ -130,9 +130,9 @@
 | VALD-09 | Phase 7: Composition and Conditionals | Complete |
 | VALD-10 | Phase 7: Composition and Conditionals | Complete |
 | VALD-11 | Phase 7: Composition and Conditionals | Complete |
-| VALD-12 | Phase 8: Advanced Validation | Pending |
-| VALD-13 | Phase 8: Advanced Validation | Pending |
-| VALD-14 | Phase 8: Advanced Validation | Pending |
+| VALD-12 | Phase 8: Advanced Validation | Complete |
+| VALD-13 | Phase 8: Advanced Validation | Complete |
+| VALD-14 | Phase 8: Advanced Validation | Complete |
 | VALD-15 | Phase 8: Advanced Validation | Pending |
 | VALD-16 | Phase 8: Advanced Validation | Pending |
 | INTG-01 | Phase 9: Single-Pass Walker | Pending |
