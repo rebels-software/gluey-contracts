@@ -58,9 +58,9 @@
 
 ### Quality
 
-- [ ] **QUAL-01**: BenchmarkDotNet suite proving zero heap allocation on parse path
+- [x] **QUAL-01**: BenchmarkDotNet suite proving zero heap allocation on parse path
 - [ ] **QUAL-02**: Allocation regression tests using GC.GetAllocatedBytesForCurrentThread
-- [ ] **QUAL-03**: NuGet packages configured and ready for publishing
+- [x] **QUAL-03**: NuGet packages configured and ready for publishing
 
 ## v2 Requirements
 
@@ -138,9 +138,9 @@
 | INTG-01 | Phase 9: Single-Pass Walker | Complete |
 | INTG-02 | Phase 9: Single-Pass Walker | Complete |
 | INTG-03 | Phase 9: Single-Pass Walker | Complete |
-| QUAL-01 | Phase 10: Quality and Packaging | Pending |
+| QUAL-01 | Phase 10: Quality and Packaging | Complete |
 | QUAL-02 | Phase 10: Quality and Packaging | Pending |
-| QUAL-03 | Phase 10: Quality and Packaging | Pending |
+| QUAL-03 | Phase 10: Quality and Packaging | Complete |
 
 **Coverage:**
 - v1 requirements: 33 total
