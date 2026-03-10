@@ -77,4 +77,77 @@ internal static class ArrayValidator
 
         return true;
     }
+
+    /// <summary>
+    /// Validates the "uniqueItems" keyword. Returns true if all array elements are unique.
+    /// Uses FNV-1a hashing with stackalloc for arrays &lt;= 128 items to avoid heap allocation.
+    /// Handles numeric equivalence (e.g., 1 and 1.0 are considered duplicates).
+    /// </summary>
+    internal static bool ValidateUniqueItems(byte[][] elementBytes, bool[] isNumber, string path, ErrorCollector collector)
+    {
+        int count = elementBytes.Length;
+        if (count <= 1)
+            return true;
+
+        // Compute FNV-1a hashes -- stackalloc for small arrays, heap fallback for large
+        Span<int> hashes = count <= 128
+            ? stackalloc int[count]
+            : new int[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            hashes[i] = Fnv1aHash(elementBytes[i]);
+        }
+
+        // O(n^2) comparison with hash pre-filter
+        for (int i = 0; i < count - 1; i++)
+        {
+            for (int j = i + 1; j < count; j++)
+            {
+                if (hashes[i] == hashes[j])
+                {
+                    // Byte-exact match (same hash, verify content)
+                    if (((ReadOnlySpan<byte>)elementBytes[i]).SequenceEqual(elementBytes[j]))
+                    {
+                        collector.Add(new ValidationError(
+                            path,
+                            ValidationErrorCode.UniqueItemsViolation,
+                            ValidationErrorMessages.Get(ValidationErrorCode.UniqueItemsViolation)));
+                        return false;
+                    }
+                }
+
+                // Numeric equivalence fallback for number pairs (different bytes may be equal numbers)
+                if (isNumber[i] && isNumber[j]
+                    && KeywordValidator.TryNumericEqual(elementBytes[i], elementBytes[j], out bool equal)
+                    && equal)
+                {
+                    collector.Add(new ValidationError(
+                        path,
+                        ValidationErrorCode.UniqueItemsViolation,
+                        ValidationErrorMessages.Get(ValidationErrorCode.UniqueItemsViolation)));
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Computes an FNV-1a hash of the given byte span.
+    /// </summary>
+    private static int Fnv1aHash(ReadOnlySpan<byte> bytes)
+    {
+        unchecked
+        {
+            uint hash = 2166136261;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                hash ^= bytes[i];
+                hash *= 16777619;
+            }
+            return (int)hash;
+        }
+    }
 }

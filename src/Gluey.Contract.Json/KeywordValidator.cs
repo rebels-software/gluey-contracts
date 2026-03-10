@@ -219,7 +219,7 @@ internal static class KeywordValidator
     /// Attempts to compare two byte spans as JSON numbers using decimal parsing.
     /// Returns true if both parse successfully; sets <paramref name="equal"/> to whether values match.
     /// </summary>
-    private static bool TryNumericEqual(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, out bool equal)
+    internal static bool TryNumericEqual(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, out bool equal)
     {
         equal = false;
         var readerA = new Utf8JsonReader(a);
