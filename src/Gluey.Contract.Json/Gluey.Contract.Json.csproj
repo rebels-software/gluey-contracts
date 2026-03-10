@@ -1,18 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>13</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Gluey.Contract</RootNamespace>
-    <AssemblyName>Gluey.Contract</AssemblyName>
+    <RootNamespace>Gluey.Contract.Json</RootNamespace>
+    <AssemblyName>Gluey.Contract.Json</AssemblyName>
     <Version>1.0.0-preview.1</Version>
 
     <!-- NuGet Package -->
-    <PackageId>Gluey.Contract</PackageId>
+    <PackageId>Gluey.Contract.Json</PackageId>
     <Authors>Gluey Contributors</Authors>
-    <Description>Zero-allocation, single-pass validation and indexing of raw bytes against a schema</Description>
+    <Description>JSON Schema Draft 2020-12 driver for Gluey.Contract</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageTags>json;schema;validation;zero-allocation;high-performance</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -28,13 +28,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Gluey.Contract.Tests" />
-    <InternalsVisibleTo Include="Gluey.Contract.Json" />
     <InternalsVisibleTo Include="Gluey.Contract.Json.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\..\README.md" Pack="true" PackagePath="\" />
+    <ProjectReference Include="..\Gluey.Contract\Gluey.Contract.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
     <None Include="$(MSBuildThisFileDirectory)..\..\assets\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 

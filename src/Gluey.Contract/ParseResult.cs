@@ -21,7 +21,6 @@ public readonly struct ParseResult : IDisposable
     private readonly ErrorCollector _errorCollector;
     private readonly Dictionary<string, int>? _nameToOrdinal;
     private readonly ArrayBuffer? _arrayBuffer;
-    private readonly int[]? _disposedHolder;
 
     /// <summary>
     /// Creates a new <see cref="ParseResult"/> wrapping the given offset table, error collector,
@@ -39,7 +38,6 @@ public readonly struct ParseResult : IDisposable
         _errorCollector = errorCollector;
         _nameToOrdinal = nameToOrdinal;
         _arrayBuffer = null;
-        _disposedHolder = new int[1];
     }
 
     /// <summary>
@@ -61,7 +59,6 @@ public readonly struct ParseResult : IDisposable
         _errorCollector = errorCollector;
         _nameToOrdinal = nameToOrdinal;
         _arrayBuffer = arrayBuffer;
-        _disposedHolder = new int[1];
     }
 
     /// <summary>
@@ -116,9 +113,6 @@ public readonly struct ParseResult : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_disposedHolder is null || System.Threading.Interlocked.Exchange(ref _disposedHolder[0], 1) != 0)
-            return;
-
         _offsetTable.Dispose();
         _errorCollector.Dispose();
         _arrayBuffer?.Dispose();
