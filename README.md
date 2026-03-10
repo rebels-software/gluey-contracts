@@ -38,6 +38,7 @@ JSON bytes → Single pass: validate + index → access values on demand
 - **Single-pass validation** — schema validation happens during parsing, not as a separate step.
 - **Exact JSON Pointer paths** — validation errors include [RFC 6901](https://datatracker.ietf.org/doc/html/rfc6901) paths like `/devices/0/serialNumber`, not `Devices[0].SerialNumber`.
 - **Format-agnostic interface** — same API whether the bytes came from JSON, Protobuf, or any other wire format.
+- **UTF-8 native** — operates directly on UTF-8 bytes (what Kestrel, HTTP, and file I/O deliver). ASCII works as-is (subset of UTF-8). UTF-16/UTF-32 input must be transcoded to UTF-8 first — the library does not perform encoding conversion internally, keeping the hot path allocation-free.
 
 ## Packages
 
