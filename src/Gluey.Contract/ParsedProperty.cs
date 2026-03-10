@@ -215,6 +215,53 @@ public readonly struct ParsedProperty
         return value;
     }
 
+    /// <summary>
+    /// Gets the number of elements in this array property.
+    /// Returns 0 if this property is not an array.
+    /// </summary>
+    public int Count =>
+        _arrayBuffer is not null && _arrayOrdinal >= 0
+            ? _arrayBuffer.GetCount(_arrayOrdinal)
+            : 0;
+
+    /// <summary>
+    /// Returns a zero-allocation enumerator over array elements,
+    /// enabling <c>foreach (var elem in property)</c> for array properties.
+    /// For non-array properties, the enumerator yields zero elements.
+    /// </summary>
+    public ArrayEnumerator GetEnumerator()
+    {
+        if (_arrayBuffer is not null && _arrayOrdinal >= 0)
+            return new ArrayEnumerator(_arrayBuffer, _arrayOrdinal, _arrayBuffer.GetCount(_arrayOrdinal));
+        return default;
+    }
+
     /// <summary>Returns a default <see cref="ParsedProperty"/> with no value.</summary>
     public static ParsedProperty Empty => default;
+
+    /// <summary>
+    /// A stack-allocated enumerator over array elements of a <see cref="ParsedProperty"/>.
+    /// Follows the zero-allocation duck-typed enumerator pattern (no IEnumerator interface).
+    /// </summary>
+    public struct ArrayEnumerator
+    {
+        private readonly ArrayBuffer _buffer;
+        private readonly int _arrayOrdinal;
+        private readonly int _count;
+        private int _index;
+
+        internal ArrayEnumerator(ArrayBuffer buffer, int arrayOrdinal, int count)
+        {
+            _buffer = buffer;
+            _arrayOrdinal = arrayOrdinal;
+            _count = count;
+            _index = -1;
+        }
+
+        /// <summary>Gets the current array element.</summary>
+        public ParsedProperty Current => _buffer.Get(_arrayOrdinal, _index);
+
+        /// <summary>Advances the enumerator to the next array element.</summary>
+        public bool MoveNext() => ++_index < _count;
+    }
 }
