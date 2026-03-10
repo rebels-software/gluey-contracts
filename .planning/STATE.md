@@ -50,21 +50,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Zero-allocation, single-pass validation and indexing of raw bytes against a schema
-**Current focus:** Phase 8: Advanced Validation
+**Current focus:** Phase 9: Single-Pass Walker
 
 ## Current Position
 
-Phase: 8 of 10 (Advanced Validation)
-Plan: 2 of 2 completed in current phase
-Status: Executing Phase 8
-Last activity: 2026-03-10 — Plan 08-02 executed (SchemaOptions + FormatValidator with 9 formats, 41 tests)
+Phase: 9 of 10 (Single-Pass Walker)
+Plan: 1 of 1 completed in current phase
+Status: Executing Phase 9
+Last activity: 2026-03-10 — Plan 09-01 executed (SchemaWalker single-pass validation + offset table, 26 tests)
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 4 min
 - Total execution time: 0.5 hours
 
@@ -90,6 +90,7 @@ Progress: [██████████] 100%
 | Phase 07 P02 | 3min | 2 tasks | 4 files |
 | Phase 08 P01 | 4min | 2 tasks | 8 files |
 | Phase 08 P02 | 3min | 2 tasks | 5 files |
+| Phase 09 P01 | 11min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,10 @@ Recent decisions affecting current work:
 - [Phase 08]: Format assertion opt-in via SchemaOptions.AssertFormat, documented exception to zero-alloc guarantee (08-02)
 - [Phase 08]: Simplified email validation (structural check: one @, non-empty local/domain, no spaces) (08-02)
 - [Phase 08]: RFC 3339 time format requires offset indicator; bare times rejected (08-02)
+- [Phase 09]: Enum/const comparison uses raw JSON bytes (including quotes for strings) to match schema-stored values (09-01)
+- [Phase 09]: OffsetTable ordinals keyed by RFC 6901 path, accessed via result["/name"] (09-01)
+- [Phase 09]: WalkResult is non-ref struct to escape SchemaWalker ref struct scope (09-01)
+- [Phase 09]: Walker stores ReadOnlySpan<byte> for value byte access regardless of byte[]/span input (09-01)
 
 ### Pending Todos
 
@@ -151,6 +156,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T15:31:55.811Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-single-pass-walker/09-CONTEXT.md
+Last session: 2026-03-10T16:09:33Z
+Stopped at: Completed 09-01-PLAN.md
+Resume file: .planning/phases/09-single-pass-walker/09-01-SUMMARY.md
