@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-03-10T11:57:54.000Z"
-last_activity: 2026-03-10 — Plan 08-01 executed (patternProperties, propertyNames, contains, uniqueItems validators, 28 tests)
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-03-10T12:04:01.000Z"
+last_activity: 2026-03-10 — Plan 08-02 executed (SchemaOptions + FormatValidator with 9 formats, 41 tests)
 progress:
   total_phases: 10
   completed_phases: 7
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 16
+  completed_plans: 16
 ---
 
 ---
@@ -40,9 +40,9 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 Phase: 8 of 10 (Advanced Validation)
-Plan: 1 of 1 completed in current phase
+Plan: 2 of 2 completed in current phase
 Status: Executing Phase 8
-Last activity: 2026-03-10 — Plan 08-01 executed (patternProperties, propertyNames, contains, uniqueItems validators, 28 tests)
+Last activity: 2026-03-10 — Plan 08-02 executed (SchemaOptions + FormatValidator with 9 formats, 41 tests)
 
 Progress: [██████████] 100%
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100%
 | Phase 07 P01 | 3min | 1 tasks | 2 files |
 | Phase 07 P02 | 3min | 2 tasks | 4 files |
 | Phase 08 P01 | 4min | 2 tasks | 8 files |
+| Phase 08 P02 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase 08]: FNV-1a hash with stackalloc for <= 128 items, heap fallback for larger arrays (08-01)
 - [Phase 08]: Numeric equivalence check always runs for number pairs regardless of hash match (08-01)
 - [Phase 08]: patternProperties regex compiled at load time with fail-fast on invalid patterns (08-01)
+- [Phase 08]: Format assertion opt-in via SchemaOptions.AssertFormat, documented exception to zero-alloc guarantee (08-02)
+- [Phase 08]: Simplified email validation (structural check: one @, non-empty local/domain, no spaces) (08-02)
+- [Phase 08]: RFC 3339 time format requires offset indicator; bare times rejected (08-02)
 
 ### Pending Todos
 
@@ -128,10 +132,10 @@ None yet.
 ### Blockers/Concerns
 
 - Phase 8: uniqueItems zero-allocation hashing strategy -- RESOLVED (FNV-1a with stackalloc)
-- Phase 8: Format assertion may need small allocation budget (opt-in, outside zero-alloc guarantee)
+- Phase 8: Format assertion may need small allocation budget (opt-in, outside zero-alloc guarantee) -- RESOLVED (SchemaOptions.AssertFormat opt-in)
 
 ## Session Continuity
 
-Last session: 2026-03-10T11:57:54.000Z
-Stopped at: Completed 08-01-PLAN.md
-Resume file: .planning/phases/08-advanced-validation/08-01-SUMMARY.md
+Last session: 2026-03-10T12:04:01.000Z
+Stopped at: Completed 08-02-PLAN.md
+Resume file: .planning/phases/08-advanced-validation/08-02-SUMMARY.md
