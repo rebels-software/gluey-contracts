@@ -86,39 +86,42 @@ Two API styles — choose what fits your codebase:
 #### TryParse — .NET-idiomatic
 
 ```csharp
-var schema = JsonContractSchema.FromFile("enrollment.schema.json");
+var schema = JsonContractSchema.Load(schemaJson);
 
-if (schema.TryParse(requestBytes, out ParsedData data, out ValidationError[] errors))
+if (schema.TryParse(requestBytes, out var result))
 {
-    data["serialNumber"].GetString();        // reads from byte buffer
-    data["serialNumber"].Path;               // "/serialNumber"
-    data["device"]["name"].GetString();      // nested access
-    data["device"]["tags"][0].GetString();   // array access
-    data["device"]["tags"][0].Path;          // "/device/tags/0"
+    result["serialNumber"].GetString();        // reads from byte buffer
+    result["serialNumber"].Path;               // "/serialNumber"
+    result["device"]["name"].GetString();      // nested access
+    result["device"]["tags"][0].GetString();   // array access
+    result["device"]["tags"][0].Path;          // "/device/tags/0"
+    result.Dispose();
 }
 else
 {
-    // errors → [{ Path: "/csr", Code: "REQUIRED" }]
+    // result.Errors → [{ Path: "/csr", Code: "RequiredMissing" }]
+    result.Dispose();
 }
 ```
 
-#### Result — explicit success/failure
+#### Parse — returns nullable
 
 ```csharp
 var result = schema.Parse(requestBytes);
 
-if (result.IsSuccess)
+if (result is { } parsed)
 {
-    result.Value["serialNumber"].GetString();
-    result.Value["device"]["tags"][0].Path;  // "/device/tags/0"
+    if (!parsed.Errors.HasErrors)
+    {
+        parsed["serialNumber"].GetString();
+        parsed["device"]["tags"][0].Path;  // "/device/tags/0"
+    }
+    parsed.Dispose();
 }
-else
-{
-    // result.Errors → [{ Path: "/csr", Code: "REQUIRED" }]
-}
+// null → structurally invalid JSON
 ```
 
-Both share the same internal parsing logic. No objects were allocated. `ParsedProperty` is a struct holding an offset and length into the original byte buffer. Values are materialized only when you call `GetString()`, `GetInt32()`, etc.
+Both share the same internal parsing logic. No objects were allocated. `ParsedProperty` is a `readonly struct` holding an offset and length into the original byte buffer. Values are materialized only when you call `GetString()`, `GetInt32()`, etc. `Dispose()` returns pooled buffers.
 
 ### 4. Validation errors with [RFC 6901](https://datatracker.ietf.org/doc/html/rfc6901) JSON Pointer paths
 
@@ -177,7 +180,7 @@ Gluey.Contract (core)
   ├── Schema model         — describes expected structure (types, constraints, paths)
   ├── ParsedProperty       — struct: offset + length into byte buffer
   ├── Offset table         — maps property names to byte positions
-  ├── Result<T>            — success/failure with validation errors
+  ├── ParseResult          — parsed properties + validation errors
   └── Validation errors    — code + path + message
         │
         ├── Gluey.Contract.Json       — JSON byte parser using JSON Schema
