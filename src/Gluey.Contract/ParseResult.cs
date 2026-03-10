@@ -89,9 +89,12 @@ public readonly struct ParseResult : IDisposable
     {
         get
         {
-            if (_nameToOrdinal is not null && _nameToOrdinal.TryGetValue(name, out int ordinal))
+            if (_nameToOrdinal is not null)
             {
-                return _offsetTable[ordinal];
+                if (_nameToOrdinal.TryGetValue(name, out int ordinal))
+                    return _offsetTable[ordinal];
+                if (name.Length > 0 && name[0] != '/' && _nameToOrdinal.TryGetValue("/" + name, out ordinal))
+                    return _offsetTable[ordinal];
             }
 
             return ParsedProperty.Empty;

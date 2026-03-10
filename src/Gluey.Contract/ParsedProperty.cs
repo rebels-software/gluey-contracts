@@ -111,8 +111,18 @@ public readonly struct ParsedProperty
         {
             if (_directChildren is not null && _directChildren.TryGetValue(name, out var child))
                 return child;
-            if (_childOrdinals is not null && _childOrdinals.TryGetValue(name, out int ordinal))
-                return _childTable[ordinal];
+            if (_childOrdinals is not null)
+            {
+                if (_childOrdinals.TryGetValue(name, out int ordinal))
+                    return _childTable[ordinal];
+                // Fallback: _childOrdinals keys are full RFC 6901 paths (e.g., "/address/street").
+                // When user calls prop["street"], find the key ending in "/street".
+                foreach (var kvp in _childOrdinals)
+                {
+                    if (kvp.Key.Length > 0 && kvp.Key.EndsWith("/" + name, StringComparison.Ordinal))
+                        return _childTable[kvp.Value];
+                }
+            }
             return Empty;
         }
     }
