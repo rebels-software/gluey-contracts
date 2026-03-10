@@ -140,8 +140,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — patternProperties/propertyNames + contains/minContains/maxContains + uniqueItems validators with CompiledPatternProperties and FNV-1a hashing
+- [ ] 08-02-PLAN.md — SchemaOptions public API + FormatValidator with 9 format implementations + TryLoad/Load integration
 
 ### Phase 9: Single-Pass Walker
 **Goal**: Validation and offset table construction happen in a single forward pass through the byte buffer, delivering the library's core differentiator
@@ -186,6 +186,6 @@ Note: Phases 4 and 2-3 are independent chains. Phases 6, 7, 8 depend on 5 but ar
 | 5. Basic Validation | 2/2 | Complete   | 2026-03-09 |
 | 6. Constraint Validation | 1/2 | In progress | - |
 | 7. Composition and Conditionals | 2/2 | Complete   | 2026-03-09 |
-| 8. Advanced Validation | 0/0 | Not started | - |
+| 8. Advanced Validation | 0/2 | Not started | - |
 | 9. Single-Pass Walker | 0/0 | Not started | - |
 | 10. Quality and Packaging | 0/0 | Not started | - |
