@@ -139,43 +139,112 @@ public class JsonContractSchema
         return Load(bytes, registry, options);
     }
 
-    // ── Instance parse methods (stubs until Phase 9) ─────────────────
+    // ── Instance parse methods ──────────────────────────────────────────
 
     /// <summary>
     /// Attempts to parse and validate the given UTF-8 JSON data against this schema.
+    /// Validates only (no OffsetTable population) -- indexers return <see cref="ParsedProperty.Empty"/>.
     /// </summary>
     /// <param name="data">The raw UTF-8 bytes to parse.</param>
     /// <param name="result">
     /// When this method returns <c>true</c>, contains the <see cref="ParseResult"/>
-    /// with parsed properties and any validation errors. When <c>false</c>, contains
-    /// <c>default</c>.
+    /// with validation status. When <c>false</c>, contains <c>default</c>.
     /// </param>
-    /// <returns><c>true</c> if parsing succeeded; otherwise <c>false</c>.</returns>
-    /// <remarks>
-    /// This is a stub implementation. Full single-pass parse logic will be added in Phase 9.
-    /// </remarks>
-    // TODO: Phase 9 -- implement single-pass walker with schema-driven validation
+    /// <returns><c>true</c> if JSON is valid and matches the schema; otherwise <c>false</c>.</returns>
     public bool TryParse(ReadOnlySpan<byte> data, out ParseResult result)
     {
-        result = default;
-        return false;
+        var walkResult = SchemaWalker.Walk(data, _root, PropertyCount, AssertFormat);
+
+        if (walkResult.HasStructuralError)
+        {
+            walkResult.Errors.Dispose();
+            walkResult.Table.Dispose();
+            result = default;
+            return false;
+        }
+
+        result = new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal);
+
+        if (walkResult.Errors.HasErrors)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to parse and validate the given byte array against this schema.
+    /// Populates <see cref="OffsetTable"/> for property access via indexers.
+    /// </summary>
+    /// <param name="data">The raw UTF-8 byte array to parse.</param>
+    /// <param name="result">
+    /// When this method returns <c>true</c>, contains the <see cref="ParseResult"/>
+    /// with parsed properties and validation status. When <c>false</c>, contains <c>default</c>.
+    /// </param>
+    /// <returns><c>true</c> if JSON is valid and matches the schema; otherwise <c>false</c>.</returns>
+    public bool TryParse(byte[] data, out ParseResult result)
+    {
+        var walkResult = SchemaWalker.Walk(data, _root, _nameToOrdinal, PropertyCount, AssertFormat);
+
+        if (walkResult.HasStructuralError)
+        {
+            walkResult.Errors.Dispose();
+            walkResult.Table.Dispose();
+            result = default;
+            return false;
+        }
+
+        result = new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal);
+
+        if (walkResult.Errors.HasErrors)
+            return false;
+
+        return true;
     }
 
     /// <summary>
     /// Parses and validates the given UTF-8 JSON data against this schema.
-    /// Returns <c>null</c> if parsing cannot be completed. Never throws.
+    /// Returns <c>null</c> for malformed JSON. Returns <see cref="ParseResult"/> with errors for schema violations.
+    /// Validates only (no OffsetTable population).
     /// </summary>
     /// <param name="data">The raw UTF-8 bytes to parse.</param>
     /// <returns>
-    /// A <see cref="ParseResult"/> containing parsed properties and validation errors,
-    /// or <c>null</c> if the data could not be parsed.
+    /// A <see cref="ParseResult"/> containing validation errors,
+    /// or <c>null</c> if the JSON is structurally invalid.
     /// </returns>
-    /// <remarks>
-    /// This is a stub implementation. Full single-pass parse logic will be added in Phase 9.
-    /// </remarks>
-    // TODO: Phase 9 -- implement single-pass walker with schema-driven validation
     public ParseResult? Parse(ReadOnlySpan<byte> data)
     {
-        return null;
+        var walkResult = SchemaWalker.Walk(data, _root, PropertyCount, AssertFormat);
+
+        if (walkResult.HasStructuralError)
+        {
+            walkResult.Errors.Dispose();
+            walkResult.Table.Dispose();
+            return null;
+        }
+
+        return new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal);
+    }
+
+    /// <summary>
+    /// Parses and validates the given byte array against this schema.
+    /// Returns <c>null</c> for malformed JSON. Populates <see cref="OffsetTable"/> for property access.
+    /// </summary>
+    /// <param name="data">The raw UTF-8 byte array to parse.</param>
+    /// <returns>
+    /// A <see cref="ParseResult"/> containing parsed properties and validation errors,
+    /// or <c>null</c> if the JSON is structurally invalid.
+    /// </returns>
+    public ParseResult? Parse(byte[] data)
+    {
+        var walkResult = SchemaWalker.Walk(data, _root, _nameToOrdinal, PropertyCount, AssertFormat);
+
+        if (walkResult.HasStructuralError)
+        {
+            walkResult.Errors.Dispose();
+            walkResult.Table.Dispose();
+            return null;
+        }
+
+        return new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal);
     }
 }

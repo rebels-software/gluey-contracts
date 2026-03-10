@@ -76,6 +76,9 @@ internal static class ValidationErrorMessages
         Messages[(int)ValidationErrorCode.AnchorUnresolved] = "A $anchor target cannot be resolved.";
         Messages[(int)ValidationErrorCode.AnchorDuplicate] = "Duplicate $anchor declaration in the same schema resource.";
 
+        // Structural errors
+        Messages[(int)ValidationErrorCode.InvalidJson] = "JSON is structurally invalid.";
+
         // Sentinel
         Messages[(int)ValidationErrorCode.TooManyErrors] = "Too many validation errors; remaining errors have been truncated.";
     }

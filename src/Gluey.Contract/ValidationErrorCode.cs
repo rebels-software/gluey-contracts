@@ -149,6 +149,11 @@ public enum ValidationErrorCode : byte
     /// <summary>Duplicate $anchor declaration in the same schema resource.</summary>
     AnchorDuplicate,
 
+    // -- Structural errors --
+
+    /// <summary>The input is not valid JSON (structural/syntax error).</summary>
+    InvalidJson,
+
     // -- Sentinel --
 
     /// <summary>Too many validation errors; remaining errors have been truncated.</summary>
