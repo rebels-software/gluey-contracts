@@ -135,6 +135,9 @@ internal sealed class SchemaNode
     /// <summary>The <c>propertyNames</c> keyword.</summary>
     internal SchemaNode? PropertyNames { get; }
 
+    /// <summary>Pre-compiled regex patterns for the <c>patternProperties</c> keyword. Compiled at schema load time.</summary>
+    internal (Regex Pattern, SchemaNode Schema)[]? CompiledPatternProperties { get; }
+
     /// <summary>The <c>dependentSchemas</c> keyword.</summary>
     internal Dictionary<string, SchemaNode>? DependentSchemas { get; }
 
@@ -241,6 +244,7 @@ internal sealed class SchemaNode
         Dictionary<string, SchemaNode>? patternProperties = null,
         SchemaNode? propertyNames = null,
         Dictionary<string, SchemaNode>? dependentSchemas = null,
+        (Regex Pattern, SchemaNode Schema)[]? compiledPatternProperties = null,
         // Applicator — Array
         SchemaNode? items = null,
         SchemaNode[]? prefixItems = null,
@@ -296,6 +300,7 @@ internal sealed class SchemaNode
         PatternProperties = patternProperties;
         PropertyNames = propertyNames;
         DependentSchemas = dependentSchemas;
+        CompiledPatternProperties = compiledPatternProperties;
         Items = items;
         PrefixItems = prefixItems;
         Contains = contains;

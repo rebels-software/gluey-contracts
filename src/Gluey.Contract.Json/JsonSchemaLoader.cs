@@ -353,6 +353,25 @@ internal static class JsonSchemaLoader
             }
         }
 
+        // Compile patternProperties regex at load time (fail-fast on invalid patterns)
+        (Regex Pattern, SchemaNode Schema)[]? compiledPatternProperties = null;
+        if (patternProperties is not null)
+        {
+            compiledPatternProperties = new (Regex, SchemaNode)[patternProperties.Count];
+            int idx = 0;
+            foreach (var kvp in patternProperties)
+            {
+                try
+                {
+                    compiledPatternProperties[idx++] = (new Regex(kvp.Key, RegexOptions.Compiled), kvp.Value);
+                }
+                catch (ArgumentException)
+                {
+                    return null;
+                }
+            }
+        }
+
         return new SchemaNode(
             path: currentPath,
             id: id,
@@ -388,6 +407,7 @@ internal static class JsonSchemaLoader
             patternProperties: patternProperties,
             propertyNames: propertyNames,
             dependentSchemas: dependentSchemas,
+            compiledPatternProperties: compiledPatternProperties,
             items: items,
             prefixItems: prefixItems,
             contains: contains,

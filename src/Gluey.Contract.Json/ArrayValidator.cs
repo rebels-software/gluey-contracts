@@ -38,4 +38,43 @@ internal static class ArrayValidator
             ValidationErrorMessages.Get(ValidationErrorCode.MaxItemsExceeded)));
         return false;
     }
+
+    /// <summary>
+    /// Validates the "contains" keyword with optional minContains/maxContains bounds.
+    /// Default effective minimum is 1 when minContains is null.
+    /// </summary>
+    internal static bool ValidateContains(int matchCount, int? minContains, int? maxContains, string path, ErrorCollector collector)
+    {
+        int effectiveMin = minContains ?? 1;
+
+        if (matchCount < effectiveMin)
+        {
+            if (minContains.HasValue)
+            {
+                collector.Add(new ValidationError(
+                    path,
+                    ValidationErrorCode.MinContainsExceeded,
+                    ValidationErrorMessages.Get(ValidationErrorCode.MinContainsExceeded)));
+            }
+            else
+            {
+                collector.Add(new ValidationError(
+                    path,
+                    ValidationErrorCode.ContainsInvalid,
+                    ValidationErrorMessages.Get(ValidationErrorCode.ContainsInvalid)));
+            }
+            return false;
+        }
+
+        if (maxContains.HasValue && matchCount > maxContains.Value)
+        {
+            collector.Add(new ValidationError(
+                path,
+                ValidationErrorCode.MaxContainsExceeded,
+                ValidationErrorMessages.Get(ValidationErrorCode.MaxContainsExceeded)));
+            return false;
+        }
+
+        return true;
+    }
 }

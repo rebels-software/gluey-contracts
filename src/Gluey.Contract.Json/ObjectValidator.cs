@@ -38,4 +38,36 @@ internal static class ObjectValidator
             ValidationErrorMessages.Get(ValidationErrorCode.MaxPropertiesExceeded)));
         return false;
     }
+
+    /// <summary>
+    /// Validates a property value against its matching patternProperties subschema.
+    /// Returns true if the subschema result passed.
+    /// </summary>
+    internal static bool ValidatePatternProperty(bool schemaResult, string propertyName, string path, ErrorCollector collector)
+    {
+        if (schemaResult)
+            return true;
+
+        collector.Add(new ValidationError(
+            SchemaNode.BuildChildPath(path, propertyName),
+            ValidationErrorCode.PatternPropertyInvalid,
+            ValidationErrorMessages.Get(ValidationErrorCode.PatternPropertyInvalid)));
+        return false;
+    }
+
+    /// <summary>
+    /// Validates a property name against the propertyNames subschema.
+    /// Returns true if the name schema result passed.
+    /// </summary>
+    internal static bool ValidatePropertyName(bool nameSchemaResult, string propertyName, string path, ErrorCollector collector)
+    {
+        if (nameSchemaResult)
+            return true;
+
+        collector.Add(new ValidationError(
+            SchemaNode.BuildChildPath(path, propertyName),
+            ValidationErrorCode.PropertyNameInvalid,
+            ValidationErrorMessages.Get(ValidationErrorCode.PropertyNameInvalid)));
+        return false;
+    }
 }
