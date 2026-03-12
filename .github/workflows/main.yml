@@ -1,0 +1,53 @@
+name: Build, test and publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags:
+      - 'contract/v*'
+      - 'contract-json/v*'
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    uses: rebels-software/github-actions/.github/workflows/build-and-test.yaml@v1.0.0
+    with:
+      csproj-path: src/Gluey.Contract/Gluey.Contract.csproj
+    secrets:
+      CODE_COV_TOKEN: ${{ secrets.CODE_COV_TOKEN }}
+
+  create-tag-contract:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [build-and-test]
+    uses: rebels-software/github-actions/.github/workflows/create-version-tag.yaml@v1.0.0
+    with:
+      csproj-path: src/Gluey.Contract/Gluey.Contract.csproj
+      tag-prefix: contract
+
+  create-tag-contract-json:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [build-and-test]
+    uses: rebels-software/github-actions/.github/workflows/create-version-tag.yaml@v1.0.0
+    with:
+      csproj-path: src/Gluey.Contract.Json/Gluey.Contract.Json.csproj
+      tag-prefix: contract-json
+
+  publish-contract:
+    needs: [build-and-test, create-tag-contract]
+    if: always() && needs.build-and-test.result == 'success' && (startsWith(github.ref, 'refs/tags/contract/v') || needs.create-tag-contract.result == 'success')
+    uses: rebels-software/github-actions/.github/workflows/publish-nuget.yaml@v1.0.0
+    with:
+      csproj-path: src/Gluey.Contract/Gluey.Contract.csproj
+    secrets:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+  publish-contract-json:
+    needs: [build-and-test, create-tag-contract-json]
+    if: always() && needs.build-and-test.result == 'success' && (startsWith(github.ref, 'refs/tags/contract-json/v') || needs.create-tag-contract-json.result == 'success')
+    uses: rebels-software/github-actions/.github/workflows/publish-nuget.yaml@v1.0.0
+    with:
+      csproj-path: src/Gluey.Contract.Json/Gluey.Contract.Json.csproj
+    secrets:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}

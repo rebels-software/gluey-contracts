@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>13</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Gluey.Contract</RootNamespace>
+    <AssemblyName>Gluey.Contract</AssemblyName>
+    <Version>1.0.0-preview.1</Version>
+
+    <!-- NuGet Package -->
+    <PackageId>Gluey.Contract</PackageId>
+    <Authors>Gluey Contributors</Authors>
+    <Description>Zero-allocation, single-pass validation and indexing of raw bytes against a schema</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageTags>json;schema;validation;zero-allocation;high-performance</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/rebels/Gluey.Contracts</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gluey.Contract.Tests" />
+    <InternalsVisibleTo Include="Gluey.Contract.Json" />
+    <InternalsVisibleTo Include="Gluey.Contract.Json.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\assets\icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
