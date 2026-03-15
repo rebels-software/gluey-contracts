@@ -105,10 +105,15 @@ internal class ArrayBuffer : IDisposable
     /// </summary>
     private void Reset(int maxOrdinal)
     {
-        // Clear element data (references)
+        // Clear element data (references), or reallocate if entries were disposed
         if (_entries is not null && _count > 0)
         {
             Array.Clear(_entries, 0, _count);
+        }
+        else if (_entries is null)
+        {
+            _entries = ArrayPool<ParsedProperty>.Shared.Rent(_capacity > 0 ? _capacity : 16);
+            _capacity = _entries.Length;
         }
         _count = 0;
 
