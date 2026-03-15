@@ -25,9 +25,9 @@ namespace Gluey.Contract;
 /// OffsetTable is purely ordinal-indexed storage. ParseResult bridges string names
 /// to ordinals via the schema's lookup table.
 /// </remarks>
-public readonly struct OffsetTable : IDisposable
+public struct OffsetTable : IDisposable
 {
-    private readonly ParsedProperty[]? _entries;
+    private ParsedProperty[]? _entries;
     private readonly int _capacity;
 
     /// <summary>
@@ -90,9 +90,11 @@ public readonly struct OffsetTable : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_entries is not null)
+        var entries = _entries;
+        if (entries is not null)
         {
-            ArrayPool<ParsedProperty>.Shared.Return(_entries, clearArray: true);
+            _entries = null;
+            ArrayPool<ParsedProperty>.Shared.Return(entries, clearArray: true);
         }
     }
 }

@@ -29,10 +29,10 @@ namespace Gluey.Contract;
 /// disposal to the underlying <see cref="OffsetTable"/> and <see cref="ErrorCollector"/>,
 /// returning their ArrayPool buffers.
 /// </remarks>
-public readonly struct ParseResult : IDisposable
+public struct ParseResult : IDisposable
 {
-    private readonly OffsetTable _offsetTable;
-    private readonly ErrorCollector _errorCollector;
+    private OffsetTable _offsetTable;
+    private ErrorCollector _errorCollector;
     private readonly Dictionary<string, int>? _nameToOrdinal;
     private readonly ArrayBuffer? _arrayBuffer;
 

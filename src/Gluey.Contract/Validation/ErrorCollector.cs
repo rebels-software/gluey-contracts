@@ -26,13 +26,13 @@ namespace Gluey.Contract;
 /// <see cref="ValidationErrorCode.TooManyErrors"/> sentinel error, and any further
 /// errors are silently dropped. The capacity is configurable per schema (default 64).
 /// </remarks>
-public readonly struct ErrorCollector : IDisposable
+public struct ErrorCollector : IDisposable
 {
     /// <summary>Default maximum number of errors to collect.</summary>
     internal const int DefaultCapacity = 64;
 
-    private readonly ValidationError[]? _errors;
-    private readonly int[]? _countHolder;
+    private ValidationError[]? _errors;
+    private int[]? _countHolder;
     private readonly int _capacity;
 
     /// <summary>
@@ -129,13 +129,17 @@ public readonly struct ErrorCollector : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_errors is not null)
+        var errors = _errors;
+        if (errors is not null)
         {
-            ArrayPool<ValidationError>.Shared.Return(_errors, clearArray: true);
+            _errors = null;
+            ArrayPool<ValidationError>.Shared.Return(errors, clearArray: true);
         }
-        if (_countHolder is not null)
+        var countHolder = _countHolder;
+        if (countHolder is not null)
         {
-            ArrayPool<int>.Shared.Return(_countHolder);
+            _countHolder = null;
+            ArrayPool<int>.Shared.Return(countHolder);
         }
     }
 
