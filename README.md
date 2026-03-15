@@ -1,8 +1,8 @@
 # Gluey.Contract
 
-[![Build](https://github.com/rebels-software/gluey-contract/actions/workflows/main.yml/badge.svg)](https://github.com/rebels-software/gluey-contract/actions/workflows/main.yml)
+[![Build](https://github.com/rebels-software/gluey-contracts/actions/workflows/main.yml/badge.svg)](https://github.com/rebels-software/gluey-contracts/actions/workflows/main.yml)
 
-[![codecov](https://codecov.io/gh/rebels-software/gluey-contract/graph/badge.svg)](https://codecov.io/gh/rebels-software/gluey-contract)
+[![codecov](https://codecov.io/gh/rebels-software/gluey-contracts/graph/badge.svg)](https://codecov.io/gh/rebels-software/gluey-contracts)
 
 [![NuGet](https://img.shields.io/nuget/v/Gluey.Contract.svg)](https://www.nuget.org/packages/Gluey.Contract)
 
