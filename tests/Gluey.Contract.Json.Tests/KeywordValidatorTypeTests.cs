@@ -278,4 +278,93 @@ public class KeywordValidatorTypeTests
         collector[0].Path.Should().Be("/a");
         collector[1].Path.Should().Be("/b");
     }
+
+    // ── CheckType (zero-allocation) ─────────────────────────────────────
+
+    [Test]
+    public void CheckType_Match_ReturnsTrue()
+    {
+        KeywordValidator.CheckType(SchemaType.String, JsonByteTokenType.String, false)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_Mismatch_ReturnsFalse()
+    {
+        KeywordValidator.CheckType(SchemaType.String, JsonByteTokenType.Number, false)
+            .Should().BeFalse();
+    }
+
+    [Test]
+    public void CheckType_IntegerMatchesNumber_ReturnsTrue()
+    {
+        KeywordValidator.CheckType(SchemaType.Number, JsonByteTokenType.Number, true)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_IntegerMatchesInteger_ReturnsTrue()
+    {
+        KeywordValidator.CheckType(SchemaType.Integer, JsonByteTokenType.Number, true)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_NonIntegerNumber_DoesNotMatchInteger()
+    {
+        KeywordValidator.CheckType(SchemaType.Integer, JsonByteTokenType.Number, false)
+            .Should().BeFalse();
+    }
+
+    [Test]
+    public void CheckType_MultiType_MatchesAny()
+    {
+        KeywordValidator.CheckType(SchemaType.String | SchemaType.Null, JsonByteTokenType.Null, false)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_NoneToken_MatchesNothing()
+    {
+        KeywordValidator.CheckType(SchemaType.String, JsonByteTokenType.None, false)
+            .Should().BeFalse();
+    }
+
+    // ── IsInteger edge cases ────────────────────────────────────────────
+
+    [Test]
+    public void IsInteger_NegativeWholeNumber_ReturnsTrue()
+    {
+        KeywordValidator.IsInteger("-42"u8).Should().BeTrue();
+    }
+
+    [Test]
+    public void IsInteger_Zero_ReturnsTrue()
+    {
+        KeywordValidator.IsInteger("0"u8).Should().BeTrue();
+    }
+
+    [Test]
+    public void IsInteger_NegativeDecimal_ReturnsFalse()
+    {
+        KeywordValidator.IsInteger("-1.5"u8).Should().BeFalse();
+    }
+
+    [Test]
+    public void IsInteger_LargeInteger_ReturnsTrue()
+    {
+        KeywordValidator.IsInteger("9223372036854775807"u8).Should().BeTrue(); // Int64.MaxValue
+    }
+
+    [Test]
+    public void IsInteger_ScientificNotationNonInteger_ReturnsFalse()
+    {
+        KeywordValidator.IsInteger("1.5e0"u8).Should().BeFalse(); // 1.5, not integer
+    }
+
+    [Test]
+    public void IsInteger_NotANumber_ReturnsFalse()
+    {
+        KeywordValidator.IsInteger("\"text\""u8).Should().BeFalse();
+    }
 }

@@ -147,4 +147,137 @@ public class KeywordValidatorEnumConstTests
         collector.Count.Should().Be(1);
         collector[0].Code.Should().Be(ValidationErrorCode.ConstMismatch);
     }
+
+    // ── CheckEnum (zero-allocation) ─────────────────────────────────────
+
+    [Test]
+    public void CheckEnum_ByteExactMatch_ReturnsTrue()
+    {
+        byte[][] enumValues = ["\"hello\""u8.ToArray(), "\"world\""u8.ToArray()];
+
+        KeywordValidator.CheckEnum(enumValues, "\"hello\""u8, false).Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckEnum_NoMatch_ReturnsFalse()
+    {
+        byte[][] enumValues = ["\"hello\""u8.ToArray()];
+
+        KeywordValidator.CheckEnum(enumValues, "\"other\""u8, false).Should().BeFalse();
+    }
+
+    [Test]
+    public void CheckEnum_NumericFallback_ReturnsTrue()
+    {
+        byte[][] enumValues = ["1.0"u8.ToArray()];
+
+        KeywordValidator.CheckEnum(enumValues, "1"u8, true).Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckEnum_NumericNoMatch_ReturnsFalse()
+    {
+        byte[][] enumValues = ["2.0"u8.ToArray()];
+
+        KeywordValidator.CheckEnum(enumValues, "1"u8, true).Should().BeFalse();
+    }
+
+    [Test]
+    public void CheckEnum_Empty_ReturnsFalse()
+    {
+        byte[][] enumValues = [];
+
+        KeywordValidator.CheckEnum(enumValues, "42"u8, true).Should().BeFalse();
+    }
+
+    // ── CheckConst (zero-allocation) ────────────────────────────────────
+
+    [Test]
+    public void CheckConst_ByteExactMatch_ReturnsTrue()
+    {
+        KeywordValidator.CheckConst("true"u8.ToArray(), "true"u8, false).Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckConst_Mismatch_ReturnsFalse()
+    {
+        KeywordValidator.CheckConst("true"u8.ToArray(), "false"u8, false).Should().BeFalse();
+    }
+
+    [Test]
+    public void CheckConst_NumericFallback_ReturnsTrue()
+    {
+        KeywordValidator.CheckConst("1.0"u8.ToArray(), "1"u8, true).Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckConst_NumericMismatch_ReturnsFalse()
+    {
+        KeywordValidator.CheckConst("2.0"u8.ToArray(), "1"u8, true).Should().BeFalse();
+    }
+
+    // ── TryNumericEqual ─────────────────────────────────────────────────
+
+    [Test]
+    public void TryNumericEqual_EqualDecimals_ReturnsTrue()
+    {
+        bool parsed = KeywordValidator.TryNumericEqual("1.0"u8, "1"u8, out bool equal);
+
+        parsed.Should().BeTrue();
+        equal.Should().BeTrue();
+    }
+
+    [Test]
+    public void TryNumericEqual_DifferentValues_ReturnsFalseEqual()
+    {
+        bool parsed = KeywordValidator.TryNumericEqual("1"u8, "2"u8, out bool equal);
+
+        parsed.Should().BeTrue();
+        equal.Should().BeFalse();
+    }
+
+    [Test]
+    public void TryNumericEqual_LargeDecimals_Compares()
+    {
+        bool parsed = KeywordValidator.TryNumericEqual("123456789.0"u8, "123456789"u8, out bool equal);
+
+        parsed.Should().BeTrue();
+        equal.Should().BeTrue();
+    }
+
+    [Test]
+    public void TryNumericEqual_ScientificNotation_MatchesPlain()
+    {
+        bool parsed = KeywordValidator.TryNumericEqual("1e2"u8, "100"u8, out bool equal);
+
+        parsed.Should().BeTrue();
+        equal.Should().BeTrue();
+    }
+
+    // ── ValidateEnum with numeric non-match in byte pass ────────────────
+
+    [Test]
+    public void ValidateEnum_NumericByteMatch_Passes()
+    {
+        using var collector = new ErrorCollector();
+        byte[][] enumValues = ["10"u8.ToArray(), "20"u8.ToArray()];
+
+        bool result = KeywordValidator.ValidateEnum(
+            enumValues, "10"u8, true, "", collector);
+
+        result.Should().BeTrue();
+    }
+
+    [Test]
+    public void ValidateEnum_NumericFallbackMatch_Passes()
+    {
+        using var collector = new ErrorCollector();
+        byte[][] enumValues = ["1e2"u8.ToArray()];
+
+        // "100" doesn't byte-match "1e2", but numeric fallback should match
+        bool result = KeywordValidator.ValidateEnum(
+            enumValues, "100"u8, true, "", collector);
+
+        result.Should().BeTrue();
+    }
 }
