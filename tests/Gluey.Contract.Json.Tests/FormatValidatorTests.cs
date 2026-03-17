@@ -323,191 +323,45 @@ public class FormatValidatorTests
 
     // ── Check (zero-allocation) method ──────────────────────────────────
 
-    [Test]
-    public void Check_ValidEmail_ReturnsTrue()
+    [TestCase("date-time", "2023-01-15T12:30:00Z", true)]
+    [TestCase("date-time", "not-a-date", false)]
+    [TestCase("date", "2023-06-15", true)]
+    [TestCase("date", "2023-13-01", false)]
+    [TestCase("time", "14:30:00Z", true)]
+    [TestCase("time", "25:00:00Z", false)]
+    [TestCase("email", "user@example.com", true)]
+    [TestCase("email", "not-an-email", false)]
+    [TestCase("uuid", "550e8400-e29b-41d4-a716-446655440000", true)]
+    [TestCase("uuid", "not-a-uuid", false)]
+    [TestCase("uri", "https://example.com", true)]
+    [TestCase("uri", "not a uri", false)]
+    [TestCase("ipv4", "10.0.0.1", true)]
+    [TestCase("ipv4", "not-an-ip", false)]
+    [TestCase("ipv6", "::1", true)]
+    [TestCase("ipv6", "not-ipv6", false)]
+    [TestCase("json-pointer", "/foo/bar", true)]
+    [TestCase("json-pointer", "no-slash", false)]
+    [TestCase("x-custom-format", "anything", true)] // unknown formats pass
+    public void Check_ReturnsExpected(string format, string value, bool expected)
     {
-        FormatValidator.Check("email", ToBytes("user@example.com")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidEmail_ReturnsFalse()
-    {
-        FormatValidator.Check("email", ToBytes("not-an-email")).Should().BeFalse();
-    }
-
-    [Test]
-    public void Check_UnknownFormat_ReturnsTrue()
-    {
-        FormatValidator.Check("x-custom-format", ToBytes("anything")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_ValidDateTime_ReturnsTrue()
-    {
-        FormatValidator.Check("date-time", ToBytes("2023-01-15T12:30:00Z")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidDateTime_ReturnsFalse()
-    {
-        FormatValidator.Check("date-time", ToBytes("not-a-date")).Should().BeFalse();
-    }
-
-    [Test]
-    public void Check_ValidDate_ReturnsTrue()
-    {
-        FormatValidator.Check("date", ToBytes("2023-06-15")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidDate_ReturnsFalse()
-    {
-        FormatValidator.Check("date", ToBytes("2023-13-01")).Should().BeFalse();
-    }
-
-    [Test]
-    public void Check_ValidTime_ReturnsTrue()
-    {
-        FormatValidator.Check("time", ToBytes("14:30:00Z")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidTime_ReturnsFalse()
-    {
-        FormatValidator.Check("time", ToBytes("25:00:00Z")).Should().BeFalse();
-    }
-
-    [Test]
-    public void Check_ValidUuid_ReturnsTrue()
-    {
-        FormatValidator.Check("uuid", ToBytes("550e8400-e29b-41d4-a716-446655440000")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidUuid_ReturnsFalse()
-    {
-        FormatValidator.Check("uuid", ToBytes("not-a-uuid")).Should().BeFalse();
-    }
-
-    [Test]
-    public void Check_ValidUri_ReturnsTrue()
-    {
-        FormatValidator.Check("uri", ToBytes("https://example.com")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidUri_ReturnsFalse()
-    {
-        FormatValidator.Check("uri", ToBytes("not a uri")).Should().BeFalse();
-    }
-
-    [Test]
-    public void Check_ValidIpv4_ReturnsTrue()
-    {
-        FormatValidator.Check("ipv4", ToBytes("10.0.0.1")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidIpv4_ReturnsFalse()
-    {
-        FormatValidator.Check("ipv4", ToBytes("not-an-ip")).Should().BeFalse();
-    }
-
-    [Test]
-    public void Check_ValidIpv6_ReturnsTrue()
-    {
-        FormatValidator.Check("ipv6", ToBytes("::1")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidIpv6_ReturnsFalse()
-    {
-        FormatValidator.Check("ipv6", ToBytes("not-ipv6")).Should().BeFalse();
-    }
-
-    [Test]
-    public void Check_ValidJsonPointer_ReturnsTrue()
-    {
-        FormatValidator.Check("json-pointer", ToBytes("/foo/bar")).Should().BeTrue();
-    }
-
-    [Test]
-    public void Check_InvalidJsonPointer_ReturnsFalse()
-    {
-        FormatValidator.Check("json-pointer", ToBytes("no-slash")).Should().BeFalse();
+        FormatValidator.Check(format, ToBytes(value)).Should().Be(expected);
     }
 
     // ── Edge cases ──────────────────────────────────────────────────────
 
-    [Test]
-    public void Time_WithFractionalSeconds_ReturnsTrue()
+    [TestCase("time", "14:30:00.123Z", true)]           // fractional seconds with Z
+    [TestCase("time", "14:30:00.123+05:00", true)]      // fractional seconds with offset
+    [TestCase("time", "", false)]                        // empty string
+    [TestCase("email", "user @example.com", false)]      // spaces
+    [TestCase("email", "user@host@domain", false)]       // multiple @ signs
+    [TestCase("ipv4", "::1", false)]                     // ipv6 address in ipv4 check
+    [TestCase("ipv6", "192.168.1.1", false)]             // ipv4 address in ipv6 check
+    [TestCase("json-pointer", "/", true)]                // root slash
+    [TestCase("ipv6", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", true)] // full ipv6
+    public void Validate_EdgeCase_ReturnsExpected(string format, string value, bool expected)
     {
         using var collector = new ErrorCollector();
-        FormatValidator.Validate("time", ToBytes("14:30:00.123Z"), "/val", collector)
-            .Should().BeTrue();
-    }
-
-    [Test]
-    public void Time_WithFractionalSecondsAndOffset_ReturnsTrue()
-    {
-        using var collector = new ErrorCollector();
-        FormatValidator.Validate("time", ToBytes("14:30:00.123+05:00"), "/val", collector)
-            .Should().BeTrue();
-    }
-
-    [Test]
-    public void Time_Empty_ReturnsFalse()
-    {
-        using var collector = new ErrorCollector();
-        FormatValidator.Validate("time", ToBytes(""), "/val", collector)
-            .Should().BeFalse();
-    }
-
-    [Test]
-    public void Email_WithSpaces_ReturnsFalse()
-    {
-        using var collector = new ErrorCollector();
-        FormatValidator.Validate("email", ToBytes("user @example.com"), "/val", collector)
-            .Should().BeFalse();
-    }
-
-    [Test]
-    public void Email_MultipleAtSigns_ReturnsFalse()
-    {
-        using var collector = new ErrorCollector();
-        FormatValidator.Validate("email", ToBytes("user@host@domain"), "/val", collector)
-            .Should().BeFalse();
-    }
-
-    [Test]
-    public void Ipv4_Ipv6Address_ReturnsFalse()
-    {
-        using var collector = new ErrorCollector();
-        FormatValidator.Validate("ipv4", ToBytes("::1"), "/val", collector)
-            .Should().BeFalse();
-    }
-
-    [Test]
-    public void Ipv6_Ipv4Address_ReturnsFalse()
-    {
-        using var collector = new ErrorCollector();
-        FormatValidator.Validate("ipv6", ToBytes("192.168.1.1"), "/val", collector)
-            .Should().BeFalse();
-    }
-
-    [Test]
-    public void JsonPointer_RootSlash_ReturnsTrue()
-    {
-        using var collector = new ErrorCollector();
-        FormatValidator.Validate("json-pointer", ToBytes("/"), "/val", collector)
-            .Should().BeTrue();
-    }
-
-    [Test]
-    public void Ipv6_FullAddress_ReturnsTrue()
-    {
-        using var collector = new ErrorCollector();
-        FormatValidator.Validate("ipv6", ToBytes("2001:0db8:85a3:0000:0000:8a2e:0370:7334"), "/val", collector)
-            .Should().BeTrue();
+        FormatValidator.Validate(format, ToBytes(value), "/val", collector)
+            .Should().Be(expected);
     }
 }
