@@ -180,4 +180,108 @@ public class JsonContractSchemaApiTests
         schema.Should().NotBeNull();
         schema!.PropertyCount.Should().Be(0);
     }
+
+    // ── TryLoad with unresolvable ref ───────────────────────────────
+
+    [Test]
+    public void TryLoad_WithUnresolvableRef_ReturnsFalse()
+    {
+        var success = JsonContractSchema.TryLoad(
+            """{"properties":{"x":{"$ref":"#/$defs/missing"}}}""",
+            out var schema);
+
+        success.Should().BeFalse();
+        schema.Should().BeNull();
+    }
+
+    // ── TryLoad bytes with options ──────────────────────────────────
+
+    [Test]
+    public void TryLoad_Bytes_WithOptions_SetsAssertFormat()
+    {
+        var bytes = Encoding.UTF8.GetBytes("""{"type":"string","format":"email"}""");
+        var options = new SchemaOptions { AssertFormat = true };
+
+        var success = JsonContractSchema.TryLoad(bytes, out var schema, options: options);
+
+        success.Should().BeTrue();
+        schema!.AssertFormat.Should().BeTrue();
+    }
+
+    // ── Load bytes with registry ────────────────────────────────────
+
+    [Test]
+    public void Load_Bytes_WithRegistry_ResolvesRef()
+    {
+        var otherSchema = JsonContractSchema.Load("""{"type":"string"}""")!;
+        var registry = new SchemaRegistry();
+        registry.Add("https://example.com/str", otherSchema.Root);
+
+        var bytes = Encoding.UTF8.GetBytes("""{"properties":{"x":{"$ref":"https://example.com/str"}}}""");
+        var schema = JsonContractSchema.Load(bytes, registry);
+
+        schema.Should().NotBeNull();
+    }
+
+    // ── Parse with validation errors returns non-null ────────────────
+
+    [Test]
+    public void Parse_Span_ValidationErrors_ReturnsNonNull()
+    {
+        var schema = JsonContractSchema.Load("""{"type":"string"}""")!;
+        ReadOnlySpan<byte> data = Encoding.UTF8.GetBytes("42");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── Parse byte[] with validation errors ─────────────────────────
+
+    [Test]
+    public void Parse_ByteArray_ValidationErrors_ReturnsNonNull()
+    {
+        var schema = JsonContractSchema.Load("""{"type":"string"}""")!;
+        var data = Encoding.UTF8.GetBytes("42");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors.Count.Should().BeGreaterThan(0);
+    }
+
+    // ── Load string with registry ───────────────────────────────────
+
+    [Test]
+    public void Load_String_WithRegistry_ResolvesRef()
+    {
+        var otherSchema = JsonContractSchema.Load("""{"type":"number"}""")!;
+        var registry = new SchemaRegistry();
+        registry.Add("https://example.com/num", otherSchema.Root);
+
+        var schema = JsonContractSchema.Load(
+            """{"properties":{"x":{"$ref":"https://example.com/num"}}}""",
+            registry);
+
+        schema.Should().NotBeNull();
+    }
+
+    // ── TryLoad string with registry ────────────────────────────────
+
+    [Test]
+    public void TryLoad_String_WithRegistry_ResolvesRef()
+    {
+        var otherSchema = JsonContractSchema.Load("""{"type":"number"}""")!;
+        var registry = new SchemaRegistry();
+        registry.Add("https://example.com/num", otherSchema.Root);
+
+        var success = JsonContractSchema.TryLoad(
+            """{"properties":{"x":{"$ref":"https://example.com/num"}}}""",
+            out var schema, registry);
+
+        success.Should().BeTrue();
+        schema.Should().NotBeNull();
+    }
 }

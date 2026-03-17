@@ -364,4 +364,52 @@ public class FormatValidatorTests
         FormatValidator.Validate(format, ToBytes(value), "/val", collector)
             .Should().Be(expected);
     }
+
+    // ── Validate method error reporting ─────────────────────────────
+
+    [Test]
+    public void Validate_UnknownFormat_NoError()
+    {
+        using var collector = new ErrorCollector();
+        bool result = FormatValidator.Validate("x-unknown", ToBytes("anything"), "/val", collector);
+
+        result.Should().BeTrue();
+        collector.Count.Should().Be(0);
+    }
+
+    [Test]
+    public void Validate_InvalidIpv4_AddsFormatError()
+    {
+        using var collector = new ErrorCollector();
+        bool result = FormatValidator.Validate("ipv4", ToBytes("not-ip"), "/addr", collector);
+
+        result.Should().BeFalse();
+        collector.Count.Should().Be(1);
+        collector[0].Code.Should().Be(ValidationErrorCode.FormatInvalid);
+        collector[0].Path.Should().Be("/addr");
+    }
+
+    // ── Check with all valid formats ────────────────────────────────
+
+    [TestCase("date-time", "2026-03-17T10:30:00-05:00", true)]
+    [TestCase("date", "2000-01-01", true)]
+    [TestCase("date", "2000-02-29", true)]   // leap year
+    [TestCase("date", "2001-02-29", false)]  // not a leap year
+    [TestCase("time", "00:00:00Z", true)]
+    [TestCase("time", "23:59:59Z", true)]
+    [TestCase("time", "23:59:59.9999999Z", true)]
+    [TestCase("email", "a@b", true)]
+    [TestCase("email", "", false)]
+    [TestCase("uuid", "00000000-0000-0000-0000-000000000000", true)]
+    [TestCase("uri", "mailto:user@example.com", true)]
+    [TestCase("uri", "urn:isbn:0451450523", true)]
+    [TestCase("ipv4", "0.0.0.0", true)]
+    [TestCase("ipv4", "255.255.255.255", true)]
+    [TestCase("ipv6", "fe80::1", true)]
+    [TestCase("json-pointer", "/a/b/c", true)]
+    [TestCase("json-pointer", "/0", true)]
+    public void Check_AdditionalCases(string format, string value, bool expected)
+    {
+        FormatValidator.Check(format, ToBytes(value)).Should().Be(expected);
+    }
 }

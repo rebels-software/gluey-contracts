@@ -280,4 +280,59 @@ public class KeywordValidatorEnumConstTests
 
         result.Should().BeTrue();
     }
+
+    // ── ValidateEnum: numeric fallback non-match ────────────────────
+
+    [Test]
+    public void ValidateEnum_NumericFallbackNoMatch_Fails()
+    {
+        using var collector = new ErrorCollector();
+        byte[][] enumValues = ["1.0"u8.ToArray(), "2.0"u8.ToArray()];
+
+        bool result = KeywordValidator.ValidateEnum(
+            enumValues, "3"u8, true, "/val", collector);
+
+        result.Should().BeFalse();
+        collector.Count.Should().Be(1);
+    }
+
+    // ── ValidateConst: numeric no match ─────────────────────────────
+
+    [Test]
+    public void ValidateConst_NumericFallbackNoMatch_Fails()
+    {
+        using var collector = new ErrorCollector();
+
+        bool result = KeywordValidator.ValidateConst(
+            "1.0"u8.ToArray(), "2"u8, true, "/val", collector);
+
+        result.Should().BeFalse();
+        collector.Count.Should().Be(1);
+    }
+
+    // ── CheckEnum: multiple values ──────────────────────────────────
+
+    [Test]
+    public void CheckEnum_MultipleValues_MatchesSecond()
+    {
+        byte[][] enumValues = ["\"a\""u8.ToArray(), "\"b\""u8.ToArray(), "\"c\""u8.ToArray()];
+
+        KeywordValidator.CheckEnum(enumValues, "\"b\""u8, false).Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckEnum_MultipleValues_MatchesLast()
+    {
+        byte[][] enumValues = ["\"a\""u8.ToArray(), "\"b\""u8.ToArray(), "\"c\""u8.ToArray()];
+
+        KeywordValidator.CheckEnum(enumValues, "\"c\""u8, false).Should().BeTrue();
+    }
+
+    // ── CheckConst: non-number token with number flag ───────────────
+
+    [Test]
+    public void CheckConst_NonNumberBytesMismatch_ReturnsFalse()
+    {
+        KeywordValidator.CheckConst("\"hello\""u8.ToArray(), "\"world\""u8, false).Should().BeFalse();
+    }
 }

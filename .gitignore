@@ -9,3 +9,6 @@ obj/
 
 # BenchmarkDotNet
 BenchmarkDotNet.Artifacts/
+
+# Claude Code
+.claude/

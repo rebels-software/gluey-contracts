@@ -312,4 +312,84 @@ public class KeywordValidatorTypeTests
         KeywordValidator.CheckType(SchemaType.String, JsonByteTokenType.None, false)
             .Should().BeFalse();
     }
+
+    // ── ValidateType: all token types against wrong schema type ─────
+
+    [Test]
+    public void ValidateType_ObjectToken_StringType_Fails()
+    {
+        using var collector = new ErrorCollector();
+        bool result = KeywordValidator.ValidateType(
+            SchemaType.String, JsonByteTokenType.StartObject, false, "/obj", collector);
+
+        result.Should().BeFalse();
+        collector[0].Code.Should().Be(ValidationErrorCode.TypeMismatch);
+    }
+
+    [Test]
+    public void ValidateType_ArrayToken_ObjectType_Fails()
+    {
+        using var collector = new ErrorCollector();
+        bool result = KeywordValidator.ValidateType(
+            SchemaType.Object, JsonByteTokenType.StartArray, false, "/arr", collector);
+
+        result.Should().BeFalse();
+    }
+
+    [Test]
+    public void ValidateType_NullToken_StringType_Fails()
+    {
+        using var collector = new ErrorCollector();
+        bool result = KeywordValidator.ValidateType(
+            SchemaType.String, JsonByteTokenType.Null, false, "/n", collector);
+
+        result.Should().BeFalse();
+    }
+
+    [Test]
+    public void ValidateType_BoolToken_NumberType_Fails()
+    {
+        using var collector = new ErrorCollector();
+        bool result = KeywordValidator.ValidateType(
+            SchemaType.Number, JsonByteTokenType.True, false, "/b", collector);
+
+        result.Should().BeFalse();
+    }
+
+    // ── CheckType: all combinations ─────────────────────────────────
+
+    [Test]
+    public void CheckType_ObjectToken_ObjectType_Matches()
+    {
+        KeywordValidator.CheckType(SchemaType.Object, JsonByteTokenType.StartObject, false)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_ArrayToken_ArrayType_Matches()
+    {
+        KeywordValidator.CheckType(SchemaType.Array, JsonByteTokenType.StartArray, false)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_NullToken_NullType_Matches()
+    {
+        KeywordValidator.CheckType(SchemaType.Null, JsonByteTokenType.Null, false)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_TrueToken_BooleanType_Matches()
+    {
+        KeywordValidator.CheckType(SchemaType.Boolean, JsonByteTokenType.True, false)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_FalseToken_BooleanType_Matches()
+    {
+        KeywordValidator.CheckType(SchemaType.Boolean, JsonByteTokenType.False, false)
+            .Should().BeTrue();
+    }
 }
