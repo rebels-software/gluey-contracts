@@ -911,4 +911,542 @@ public class SchemaWalkerTests
         result.Should().NotBeNull();
         result!.Value.IsValid.Should().BeTrue();
     }
+
+    // ── DependentSchemas ────────────────────────────────────────────────
+
+    [Test]
+    public void Parse_DependentSchemas_Violation()
+    {
+        var schema = LoadSchema("""
+        {
+            "type":"object",
+            "properties":{"a":{},"b":{}},
+            "dependentSchemas":{"a":{"required":["b"]}}
+        }
+        """);
+        var data = Utf8("""{"a":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_DependentSchemas_Satisfied()
+    {
+        var schema = LoadSchema("""
+        {
+            "type":"object",
+            "properties":{"a":{},"b":{}},
+            "dependentSchemas":{"a":{"required":["b"]}}
+        }
+        """);
+        var data = Utf8("""{"a":1,"b":2}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    // ── PatternProperties ───────────────────────────────────────────────
+
+    [Test]
+    public void Parse_PatternProperties_Valid()
+    {
+        var schema = LoadSchema("""{"type":"object","patternProperties":{"^s":{"type":"string"}}}""");
+        var data = Utf8("""{"start":"hello","stop":"world"}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_PatternProperties_Violation()
+    {
+        var schema = LoadSchema("""{"type":"object","patternProperties":{"^s":{"type":"string"}}}""");
+        var data = Utf8("""{"start":42}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── Contains ────────────────────────────────────────────────────────
+
+    [Test]
+    public void Parse_Contains_Valid()
+    {
+        var schema = LoadSchema("""{"type":"array","contains":{"type":"number"}}""");
+        var data = Utf8("""["a",1,"b"]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_Contains_Violation()
+    {
+        var schema = LoadSchema("""{"type":"array","contains":{"type":"number"}}""");
+        var data = Utf8("""["a","b","c"]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_ContainsWithMinMax_Valid()
+    {
+        var schema = LoadSchema("""{"type":"array","contains":{"type":"number"},"minContains":1,"maxContains":2}""");
+        var data = Utf8("""["a",1,2,"b"]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_ContainsWithMinMax_TooMany()
+    {
+        var schema = LoadSchema("""{"type":"array","contains":{"type":"number"},"minContains":1,"maxContains":2}""");
+        var data = Utf8("""[1,2,3]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── UniqueItems ─────────────────────────────────────────────────────
+
+    [Test]
+    public void Parse_UniqueItems_Valid()
+    {
+        var schema = LoadSchema("""{"type":"array","uniqueItems":true}""");
+        var data = Utf8("""[1,2,3]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_UniqueItems_Violation()
+    {
+        var schema = LoadSchema("""{"type":"array","uniqueItems":true}""");
+        var data = Utf8("""[1,2,1]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── AnyOf/OneOf/Not at object level ─────────────────────────────────
+
+    [Test]
+    public void Parse_AnyOfObject_Valid()
+    {
+        var schema = LoadSchema("""{"anyOf":[{"type":"object","required":["a"]},{"type":"object","required":["b"]}]}""");
+        var data = Utf8("""{"b":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_AnyOfObject_Invalid()
+    {
+        var schema = LoadSchema("""{"anyOf":[{"type":"object","required":["a"]},{"type":"object","required":["b"]}]}""");
+        var data = Utf8("""{"c":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_OneOfObject_Valid()
+    {
+        var schema = LoadSchema("""{"oneOf":[{"type":"object","required":["a"]},{"type":"object","required":["b"]}]}""");
+        var data = Utf8("""{"a":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_OneOfObject_MultipleMatch()
+    {
+        var schema = LoadSchema("""{"oneOf":[{"type":"object","required":["a"]},{"type":"object","minProperties":1}]}""");
+        var data = Utf8("""{"a":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_NotObject_Valid()
+    {
+        var schema = LoadSchema("""{"not":{"type":"object","required":["forbidden"]}}""");
+        var data = Utf8("""{"allowed":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_NotObject_Invalid()
+    {
+        var schema = LoadSchema("""{"not":{"type":"object","required":["a"]}}""");
+        var data = Utf8("""{"a":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── AnyOf/OneOf/Not at array level ──────────────────────────────────
+
+    [Test]
+    public void Parse_AnyOfArray_Valid()
+    {
+        var schema = LoadSchema("""{"anyOf":[{"type":"array","minItems":3},{"type":"array","maxItems":1}]}""");
+        var data = Utf8("""[1]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_AnyOfArray_Invalid()
+    {
+        var schema = LoadSchema("""{"anyOf":[{"type":"array","minItems":3},{"type":"array","maxItems":0}]}""");
+        var data = Utf8("""[1,2]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_NotArray_Valid()
+    {
+        var schema = LoadSchema("""{"not":{"type":"array","minItems":5}}""");
+        var data = Utf8("""[1,2]""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    // ── If/Then/Else at object level with else branch ───────────────────
+
+    [Test]
+    public void Parse_IfElseObject_ConditionFalse_AppliesElse()
+    {
+        var schema = LoadSchema("""
+        {
+            "type":"object",
+            "if":{"required":["type"]},
+            "else":{"required":["fallback"]}
+        }
+        """);
+        var data = Utf8("""{"other":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_IfElseObject_ConditionFalse_PassesElse()
+    {
+        var schema = LoadSchema("""
+        {
+            "type":"object",
+            "if":{"required":["type"]},
+            "else":{"required":["fallback"]}
+        }
+        """);
+        var data = Utf8("""{"fallback":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    // ── Boolean schema true (accept everything) ─────────────────────────
+
+    [Test]
+    public void Parse_BooleanSchemaTrue_AcceptsAnything()
+    {
+        var schema = JsonContractSchema.Load(Encoding.UTF8.GetBytes("true"))!;
+        var data = Utf8("""{"anything":"goes"}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_BooleanSchemaFalse_RejectsEverything()
+    {
+        var schema = JsonContractSchema.Load(Encoding.UTF8.GetBytes("false"))!;
+        var data = Utf8("42");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── Scalar composition edge cases ───────────────────────────────────
+
+    [Test]
+    public void Parse_AllOfScalar_WithEnumAndConst()
+    {
+        var schema = LoadSchema("""{"allOf":[{"enum":[1,2,3]},{"const":2}]}""");
+        var data = Utf8("2");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_AllOfScalar_WithStringConstraints()
+    {
+        var schema = LoadSchema("""{"allOf":[{"type":"string","minLength":2},{"type":"string","maxLength":5}]}""");
+        var data = Utf8("\"abc\"");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_AllOfScalar_WithStringConstraints_TooLong()
+    {
+        var schema = LoadSchema("""{"allOf":[{"type":"string","minLength":2},{"type":"string","maxLength":3}]}""");
+        var data = Utf8("\"abcdef\"");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_AllOfScalar_WithPattern()
+    {
+        var schema = LoadSchema("""{"allOf":[{"type":"string","pattern":"^[a-z]+$"}]}""");
+        var data = Utf8("\"hello\"");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_AllOfScalar_WithNumericConstraints()
+    {
+        var schema = LoadSchema("""{"allOf":[{"type":"number","minimum":0,"maximum":100},{"type":"number","multipleOf":5}]}""");
+        var data = Utf8("25");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_AllOfScalar_WithNumericConstraints_Violation()
+    {
+        var schema = LoadSchema("""{"allOf":[{"type":"number","minimum":0,"maximum":100},{"type":"number","multipleOf":5}]}""");
+        var data = Utf8("7");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_AllOfScalar_WithFormatAssertion()
+    {
+        var schema = LoadSchema("""{"allOf":[{"type":"string","format":"email"}]}""", assertFormat: true);
+        var data = Utf8("\"not-email\"");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── Object subschema: dependentRequired, minProperties, maxProperties ─
+
+    [Test]
+    public void Parse_AllOfObject_WithDependentRequired_Valid()
+    {
+        var schema = LoadSchema("""
+        {
+            "allOf":[
+                {"type":"object","dependentRequired":{"a":["b"]}}
+            ]
+        }
+        """);
+        var data = Utf8("""{"a":1,"b":2}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_AllOfObject_WithDependentRequired_Violation()
+    {
+        var schema = LoadSchema("""
+        {
+            "allOf":[
+                {"type":"object","dependentRequired":{"a":["b"]}}
+            ]
+        }
+        """);
+        var data = Utf8("""{"a":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_AllOfObject_WithMinMaxProperties()
+    {
+        var schema = LoadSchema("""{"allOf":[{"type":"object","minProperties":1,"maxProperties":2}]}""");
+        var data = Utf8("""{"a":1,"b":2,"c":3}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── PropertyNames with pattern and minLength ────────────────────────
+
+    [Test]
+    public void Parse_PropertyNames_Pattern_Valid()
+    {
+        var schema = LoadSchema("""{"type":"object","propertyNames":{"pattern":"^[a-z]+$"}}""");
+        var data = Utf8("""{"abc":1,"def":2}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_PropertyNames_Pattern_Violation()
+    {
+        var schema = LoadSchema("""{"type":"object","propertyNames":{"pattern":"^[a-z]+$"}}""");
+        var data = Utf8("""{"ABC":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_PropertyNames_MinLength_Violation()
+    {
+        var schema = LoadSchema("""{"type":"object","propertyNames":{"minLength":3}}""");
+        var data = Utf8("""{"ab":1}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    // ── Array with nested objects (exercises ArrayBuffer) ────────────────
+
+    [Test]
+    public void Parse_ArrayWithNestedObjects_PopulatesElements()
+    {
+        var schema = LoadSchema("""
+        {
+            "type":"object",
+            "properties":{
+                "items":{
+                    "type":"array",
+                    "items":{"type":"object","properties":{"id":{"type":"integer"}}}
+                }
+            }
+        }
+        """);
+        var data = Utf8("""{"items":[{"id":1},{"id":2},{"id":3}]}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+    }
+
+    // ── Multiple validation errors in one parse ─────────────────────────
+
+    [Test]
+    public void Parse_MultipleConstraintViolations_CollectsAll()
+    {
+        var schema = LoadSchema("""
+        {
+            "type":"object",
+            "properties":{
+                "name":{"type":"string","minLength":5},
+                "age":{"type":"integer","minimum":18}
+            },
+            "required":["name","age","email"]
+        }
+        """);
+        var data = Utf8("""{"name":"ab","age":5}""");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors.Count.Should().BeGreaterThanOrEqualTo(3);
+    }
 }
