@@ -320,4 +320,48 @@ public class FormatValidatorTests
         collector.Count.Should().Be(1);
         collector[0].Code.Should().Be(ValidationErrorCode.FormatInvalid);
     }
+
+    // ── Check (zero-allocation) method ──────────────────────────────────
+
+    [TestCase("date-time", "2023-01-15T12:30:00Z", true)]
+    [TestCase("date-time", "not-a-date", false)]
+    [TestCase("date", "2023-06-15", true)]
+    [TestCase("date", "2023-13-01", false)]
+    [TestCase("time", "14:30:00Z", true)]
+    [TestCase("time", "25:00:00Z", false)]
+    [TestCase("email", "user@example.com", true)]
+    [TestCase("email", "not-an-email", false)]
+    [TestCase("uuid", "550e8400-e29b-41d4-a716-446655440000", true)]
+    [TestCase("uuid", "not-a-uuid", false)]
+    [TestCase("uri", "https://example.com", true)]
+    [TestCase("uri", "not a uri", false)]
+    [TestCase("ipv4", "10.0.0.1", true)]
+    [TestCase("ipv4", "not-an-ip", false)]
+    [TestCase("ipv6", "::1", true)]
+    [TestCase("ipv6", "not-ipv6", false)]
+    [TestCase("json-pointer", "/foo/bar", true)]
+    [TestCase("json-pointer", "no-slash", false)]
+    [TestCase("x-custom-format", "anything", true)] // unknown formats pass
+    public void Check_ReturnsExpected(string format, string value, bool expected)
+    {
+        FormatValidator.Check(format, ToBytes(value)).Should().Be(expected);
+    }
+
+    // ── Edge cases ──────────────────────────────────────────────────────
+
+    [TestCase("time", "14:30:00.123Z", true)]           // fractional seconds with Z
+    [TestCase("time", "14:30:00.123+05:00", true)]      // fractional seconds with offset
+    [TestCase("time", "", false)]                        // empty string
+    [TestCase("email", "user @example.com", false)]      // spaces
+    [TestCase("email", "user@host@domain", false)]       // multiple @ signs
+    [TestCase("ipv4", "::1", false)]                     // ipv6 address in ipv4 check
+    [TestCase("ipv6", "192.168.1.1", false)]             // ipv4 address in ipv6 check
+    [TestCase("json-pointer", "/", true)]                // root slash
+    [TestCase("ipv6", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", true)] // full ipv6
+    public void Validate_EdgeCase_ReturnsExpected(string format, string value, bool expected)
+    {
+        using var collector = new ErrorCollector();
+        FormatValidator.Validate(format, ToBytes(value), "/val", collector)
+            .Should().Be(expected);
+    }
 }

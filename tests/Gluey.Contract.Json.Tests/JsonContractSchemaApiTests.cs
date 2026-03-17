@@ -28,55 +28,28 @@ public class JsonContractSchemaApiTests
         JsonContractSchema.Load("""{"type":"object","properties":{"name":{"type":"string"}}}""")!;
 
     [Test]
-    public void TryParse_ValidInput_ReturnsTrue()
-    {
-        var schema = CreateSchema();
-        ReadOnlySpan<byte> data = SampleJsonBytes;
-
-        bool success = schema.TryParse(data, out ParseResult result);
-
-        success.Should().BeTrue();
-        result.Dispose();
-    }
-
-    [Test]
-    public void TryParse_ValidInput_ResultIsValid()
-    {
-        var schema = CreateSchema();
-        ReadOnlySpan<byte> data = SampleJsonBytes;
-
-        schema.TryParse(data, out ParseResult result);
-
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count.Should().Be(0);
-        result.Dispose();
-    }
-
-    [Test]
     public void Parse_ValidInput_ReturnsNonNull()
     {
         var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
-        ParseResult? result = schema.Parse(data);
+        using var result = schema.Parse(data);
 
         result.Should().NotBeNull();
         result!.Value.IsValid.Should().BeTrue();
-        result.Value.Dispose();
     }
 
     [Test]
-    public void TryParse_DoesNotThrow()
+    public void Parse_ValidInput_ResultIsValid()
     {
         var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
-        // Direct call -- ReadOnlySpan cannot be captured in lambdas
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        // If we reached here, no exception was thrown
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+        result.Value.Errors.Count.Should().Be(0);
     }
 
     [Test]
@@ -86,10 +59,125 @@ public class JsonContractSchemaApiTests
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
         // Direct call -- ReadOnlySpan cannot be captured in lambdas
-        ParseResult? result = schema.Parse(data);
+        using var result = schema.Parse(data);
 
         // If we reached here, no exception was thrown
         result.Should().NotBeNull();
-        result!.Value.Dispose();
+    }
+
+    // ── Parse byte[] overload ─────────────────────────────────────
+
+    [Test]
+    public void Parse_ByteArray_ValidInput_ReturnsResult()
+    {
+        var schema = CreateSchema();
+        var data = SampleJsonBytes;
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+        result.Value["/name"].HasValue.Should().BeTrue();
+    }
+
+    [Test]
+    public void Parse_ByteArray_InvalidInput_ReturnsResultWithErrors()
+    {
+        var schema = JsonContractSchema.Load("""{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""")!;
+        var data = Encoding.UTF8.GetBytes("{}");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void Parse_ByteArray_MalformedJson_ReturnsNull()
+    {
+        var schema = CreateSchema();
+        var data = Encoding.UTF8.GetBytes("{bad json");
+
+        var result = schema.Parse(data);
+
+        result.Should().BeNull();
+    }
+
+    [Test]
+    public void Parse_ByteArray_InvalidSchema_ReturnsResultWithErrorDetails()
+    {
+        var schema = JsonContractSchema.Load("""{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""")!;
+        var data = Encoding.UTF8.GetBytes("{}");
+
+        var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors.Count.Should().BeGreaterThan(0);
+        result.Value.Dispose();
+    }
+
+    // ── Parse Span overload with malformed JSON ───────────────────
+
+    [Test]
+    public void Parse_Span_MalformedJson_ReturnsNull()
+    {
+        var schema = CreateSchema();
+        ReadOnlySpan<byte> data = Encoding.UTF8.GetBytes("{bad json");
+
+        var result = schema.Parse(data);
+
+        result.Should().BeNull();
+    }
+
+    // ── TryLoad with SchemaOptions ──────────────────────────────────
+
+    [Test]
+    public void TryLoad_WithAssertFormat_SetsFlag()
+    {
+        var options = new SchemaOptions { AssertFormat = true };
+        var success = JsonContractSchema.TryLoad("""{"type":"string","format":"email"}""", out var schema, options: options);
+
+        success.Should().BeTrue();
+        schema!.AssertFormat.Should().BeTrue();
+    }
+
+    [Test]
+    public void TryLoad_WithoutOptions_AssertFormatIsFalse()
+    {
+        var success = JsonContractSchema.TryLoad("""{"type":"string","format":"email"}""", out var schema);
+
+        success.Should().BeTrue();
+        schema!.AssertFormat.Should().BeFalse();
+    }
+
+    // ── Load string overload ────────────────────────────────────────
+
+    [Test]
+    public void Load_FromString_InvalidJson_ReturnsNull()
+    {
+        var result = JsonContractSchema.Load("not valid json");
+
+        result.Should().BeNull();
+    }
+
+    [Test]
+    public void TryLoad_FromString_InvalidJson_ReturnsFalse()
+    {
+        var success = JsonContractSchema.TryLoad("not valid json", out var schema);
+
+        success.Should().BeFalse();
+        schema.Should().BeNull();
+    }
+
+    // ── PropertyCount ───────────────────────────────────────────────
+
+    [Test]
+    public void PropertyCount_EmptySchema_IsZero()
+    {
+        var schema = JsonContractSchema.Load("""{"type":"object"}""");
+
+        schema.Should().NotBeNull();
+        schema!.PropertyCount.Should().Be(0);
     }
 }

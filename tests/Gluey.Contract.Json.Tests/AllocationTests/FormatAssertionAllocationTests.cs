@@ -55,17 +55,17 @@ public class FormatAssertionAllocationTests
     }
 
     [Test]
-    public void TryParse_WithFormatAssertion_AllocationBudget()
+    public void Parse_WithFormatAssertion_AllocationBudget()
     {
         // Warmup: JIT + pool priming
-        _schema.TryParse(_payload, out var warmup);
-        warmup.Dispose();
-        _schema.TryParse(_payload, out var warmup2);
-        warmup2.Dispose();
+        var warmup = _schema.Parse(_payload);
+        warmup!.Value.Dispose();
+        var warmup2 = _schema.Parse(_payload);
+        warmup2!.Value.Dispose();
 
         long before = GC.GetAllocatedBytesForCurrentThread();
-        _schema.TryParse(_payload, out var result);
-        result.Dispose();
+        var result = _schema.Parse(_payload);
+        result!.Value.Dispose();
         long after = GC.GetAllocatedBytesForCurrentThread();
         long allocated = after - before;
 

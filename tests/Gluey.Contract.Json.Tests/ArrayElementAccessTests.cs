@@ -46,11 +46,11 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"tags":["alpha","beta","gamma"]}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/tags"][0].HasValue.Should().BeTrue();
-        result["/tags"][0].GetString().Should().Be("alpha");
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/tags"][0].HasValue.Should().BeTrue();
+        result.Value["/tags"][0].GetString().Should().Be("alpha");
     }
 
     [Test]
@@ -69,13 +69,13 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"tags":["alpha","beta","gamma"]}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/tags"][1].HasValue.Should().BeTrue();
-        result["/tags"][1].GetString().Should().Be("beta");
+        result.Should().NotBeNull();
+        result!.Value["/tags"][1].HasValue.Should().BeTrue();
+        result.Value["/tags"][1].GetString().Should().Be("beta");
         // Different from first element
-        result["/tags"][1].GetString().Should().NotBe(result["/tags"][0].GetString());
-        result.Dispose();
+        result.Value["/tags"][1].GetString().Should().NotBe(result.Value["/tags"][0].GetString());
     }
 
     [Test]
@@ -94,10 +94,10 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"tags":["alpha","beta"]}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/tags"][99].HasValue.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/tags"][99].HasValue.Should().BeFalse();
     }
 
     [Test]
@@ -113,11 +113,11 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"name":"Alice"}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
+        result.Should().NotBeNull();
         // "name" is a string, not an array -- int indexer should return Empty
-        result["/name"][0].HasValue.Should().BeFalse();
-        result.Dispose();
+        result!.Value["/name"][0].HasValue.Should().BeFalse();
     }
 
     [Test]
@@ -142,13 +142,13 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"items":[{"name":"Widget","price":9.99},{"name":"Gadget","price":19.99}]}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/items"][0]["name"].HasValue.Should().BeTrue();
-        result["/items"][0]["name"].GetString().Should().Be("Widget");
-        result["/items"][1]["name"].HasValue.Should().BeTrue();
-        result["/items"][1]["name"].GetString().Should().Be("Gadget");
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/items"][0]["name"].HasValue.Should().BeTrue();
+        result.Value["/items"][0]["name"].GetString().Should().Be("Widget");
+        result.Value["/items"][1]["name"].HasValue.Should().BeTrue();
+        result.Value["/items"][1]["name"].GetString().Should().Be("Gadget");
     }
 
     // ── Array enumeration ──────────────────────────────────────────────
@@ -169,10 +169,10 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"tags":["a","b","c"]}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/tags"].Count.Should().Be(3);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/tags"].Count.Should().Be(3);
     }
 
     [Test]
@@ -191,16 +191,16 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"tags":["a","b","c"]}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
+        result.Should().NotBeNull();
         var values = new List<string>();
-        foreach (var elem in result["/tags"])
+        foreach (var elem in result!.Value["/tags"])
         {
             values.Add(elem.GetString());
         }
 
         values.Should().BeEquivalentTo(["a", "b", "c"]);
-        result.Dispose();
     }
 
     [Test]
@@ -216,10 +216,10 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"name":"Alice"}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/name"].Count.Should().Be(0);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/name"].Count.Should().Be(0);
     }
 
     // ── Double-dispose safety ────────────────────────────────────────────
@@ -237,12 +237,14 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"name":"Alice"}""");
 
-        schema.TryParse(data, out var result);
+        var result = schema.Parse(data);
 
+        result.Should().NotBeNull();
+        var r = result!.Value;
         var act = () =>
         {
-            result.Dispose();
-            result.Dispose();
+            r.Dispose();
+            r.Dispose();
         };
 
         act.Should().NotThrow();
@@ -266,9 +268,9 @@ public class ArrayElementAccessTests
         """);
         var data = Utf8("""{"tags":["alpha"]}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/tags"][-1].HasValue.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/tags"][-1].HasValue.Should().BeFalse();
     }
 }

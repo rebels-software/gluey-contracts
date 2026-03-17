@@ -22,7 +22,7 @@ using Gluey.Contract.Benchmarks.Payloads;
 namespace Gluey.Contract.Benchmarks.Scenarios;
 
 /// <summary>
-/// Benchmarks TryParse and validate-only paths against an array-heavy schema.
+/// Benchmarks Parse and validate-only paths against an array-heavy schema.
 /// Note: ArrayBuffer allocates for array scenarios -- this is expected and documented.
 /// Includes System.Text.Json baseline for comparison.
 /// </summary>
@@ -70,30 +70,27 @@ public class ArrayPayloadBenchmark
         _largePayload = PayloadGenerator.GenerateArray(50_000);
     }
 
-    // ── TryParse (byte[] overload -- full path with OffsetTable) ──
+    // ── Parse (byte[] overload -- full path with OffsetTable) ──
 
     [Benchmark]
-    public bool TryParse_Small()
+    public bool Parse_Small()
     {
-        var ok = _schema.TryParse(_smallPayload, out var result);
-        result.Dispose();
-        return ok;
+        using var result = _schema.Parse(_smallPayload);
+        return result!.Value.IsValid;
     }
 
     [Benchmark]
-    public bool TryParse_Medium()
+    public bool Parse_Medium()
     {
-        var ok = _schema.TryParse(_mediumPayload, out var result);
-        result.Dispose();
-        return ok;
+        using var result = _schema.Parse(_mediumPayload);
+        return result!.Value.IsValid;
     }
 
     [Benchmark]
-    public bool TryParse_Large()
+    public bool Parse_Large()
     {
-        var ok = _schema.TryParse(_largePayload, out var result);
-        result.Dispose();
-        return ok;
+        using var result = _schema.Parse(_largePayload);
+        return result!.Value.IsValid;
     }
 
     // ── ValidateOnly (ReadOnlySpan<byte> overload) ──
@@ -101,25 +98,22 @@ public class ArrayPayloadBenchmark
     [Benchmark]
     public bool ValidateOnly_Small()
     {
-        var ok = _schema.TryParse((ReadOnlySpan<byte>)_smallPayload, out var result);
-        result.Dispose();
-        return ok;
+        using var result = _schema.Parse((ReadOnlySpan<byte>)_smallPayload);
+        return result!.Value.IsValid;
     }
 
     [Benchmark]
     public bool ValidateOnly_Medium()
     {
-        var ok = _schema.TryParse((ReadOnlySpan<byte>)_mediumPayload, out var result);
-        result.Dispose();
-        return ok;
+        using var result = _schema.Parse((ReadOnlySpan<byte>)_mediumPayload);
+        return result!.Value.IsValid;
     }
 
     [Benchmark]
     public bool ValidateOnly_Large()
     {
-        var ok = _schema.TryParse((ReadOnlySpan<byte>)_largePayload, out var result);
-        result.Dispose();
-        return ok;
+        using var result = _schema.Parse((ReadOnlySpan<byte>)_largePayload);
+        return result!.Value.IsValid;
     }
 
     // ── System.Text.Json baseline (parse only, no validation) ──

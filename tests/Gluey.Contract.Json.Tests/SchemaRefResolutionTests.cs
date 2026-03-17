@@ -393,4 +393,399 @@ public class SchemaRefResolutionTests
         schema.Should().NotBeNull();
         schema!.PropertyCount.Should().Be(2);
     }
+
+    // ── Cross-schema $ref without fragment ────────────────────────────────
+
+    [Test]
+    public void Cross_Schema_Ref_No_Fragment_Resolves()
+    {
+        var otherJson = """{"type":"string"}""";
+        var otherResult = JsonContractSchema.TryLoad(otherJson, out var otherSchema);
+        otherResult.Should().BeTrue();
+
+        var registry = new SchemaRegistry();
+        registry.Add("https://example.com/string-type", otherSchema!.Root);
+
+        var json = """
+        {
+            "type": "object",
+            "properties": {
+                "name": { "$ref": "https://example.com/string-type" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema, registry);
+
+        result.Should().BeTrue();
+        schema.Should().NotBeNull();
+        var name = schema!.Root.Properties!["name"];
+        name.ResolvedRef.Should().NotBeNull();
+    }
+
+    // ── Cross-schema $ref with # only ────────────────────────────────────
+
+    [Test]
+    public void Cross_Schema_Ref_EmptyFragment_Resolves()
+    {
+        var otherJson = """{"type":"string"}""";
+        var otherResult = JsonContractSchema.TryLoad(otherJson, out var otherSchema);
+        otherResult.Should().BeTrue();
+
+        var registry = new SchemaRegistry();
+        registry.Add("https://example.com/other", otherSchema!.Root);
+
+        var json = """
+        {
+            "type": "object",
+            "properties": {
+                "val": { "$ref": "https://example.com/other#" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema, registry);
+
+        result.Should().BeTrue();
+        var val = schema!.Root.Properties!["val"];
+        val.ResolvedRef.Should().NotBeNull();
+    }
+
+    // ── Cross-schema $ref without registry fails ─────────────────────────
+
+    [Test]
+    public void Cross_Schema_Ref_No_Registry_Fails()
+    {
+        var json = """
+        {
+            "type": "object",
+            "properties": {
+                "ext": { "$ref": "https://example.com/missing" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeFalse();
+        schema.Should().BeNull();
+    }
+
+    // ── Cross-schema $ref with anchor fragment unsupported ────────────────
+
+    [Test]
+    public void Cross_Schema_Ref_Anchor_Fragment_Fails()
+    {
+        var otherJson = """{"$anchor":"foo","type":"string"}""";
+        var otherResult = JsonContractSchema.TryLoad(otherJson, out var otherSchema);
+        otherResult.Should().BeTrue();
+
+        var registry = new SchemaRegistry();
+        registry.Add("https://example.com/other", otherSchema!.Root);
+
+        var json = """
+        {
+            "type": "object",
+            "properties": {
+                "val": { "$ref": "https://example.com/other#foo" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema, registry);
+
+        result.Should().BeFalse();
+    }
+
+    // ── JSON Pointer to various schema keywords ──────────────────────────
+
+    [Test]
+    public void Ref_To_Items_Resolves()
+    {
+        var json = """
+        {
+            "type": "object",
+            "$defs": {
+                "arr": { "type": "array", "items": { "type": "string" } }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/arr/items" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        var x = schema!.Root.Properties!["x"];
+        x.ResolvedRef.Should().NotBeNull();
+    }
+
+    [Test]
+    public void Ref_To_AdditionalProperties_Resolves()
+    {
+        var json = """
+        {
+            "type": "object",
+            "$defs": {
+                "obj": { "type": "object", "additionalProperties": { "type": "number" } }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/obj/additionalProperties" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        var x = schema!.Root.Properties!["x"];
+        x.ResolvedRef.Should().NotBeNull();
+    }
+
+    [Test]
+    public void Ref_To_Not_Resolves()
+    {
+        var json = """
+        {
+            "type": "object",
+            "$defs": {
+                "neg": { "not": { "type": "string" } }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/neg/not" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        var x = schema!.Root.Properties!["x"];
+        x.ResolvedRef.Should().NotBeNull();
+    }
+
+    [Test]
+    public void Ref_To_IfThenElse_Resolves()
+    {
+        var json = """
+        {
+            "$defs": {
+                "cond": {
+                    "if": { "type": "number" },
+                    "then": { "minimum": 0 },
+                    "else": { "type": "string" }
+                }
+            },
+            "properties": {
+                "a": { "$ref": "#/$defs/cond/if" },
+                "b": { "$ref": "#/$defs/cond/then" },
+                "c": { "$ref": "#/$defs/cond/else" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        schema!.Root.Properties!["a"].ResolvedRef.Should().NotBeNull();
+        schema.Root.Properties!["b"].ResolvedRef.Should().NotBeNull();
+        schema.Root.Properties!["c"].ResolvedRef.Should().NotBeNull();
+    }
+
+    [Test]
+    public void Ref_To_Contains_Resolves()
+    {
+        var json = """
+        {
+            "$defs": {
+                "arr": { "type": "array", "contains": { "type": "number" } }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/arr/contains" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        schema!.Root.Properties!["x"].ResolvedRef.Should().NotBeNull();
+    }
+
+    [Test]
+    public void Ref_To_PropertyNames_Resolves()
+    {
+        var json = """
+        {
+            "$defs": {
+                "obj": { "type": "object", "propertyNames": { "maxLength": 5 } }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/obj/propertyNames" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        schema!.Root.Properties!["x"].ResolvedRef.Should().NotBeNull();
+    }
+
+    // ── JSON Pointer indexed (allOf/anyOf/oneOf/prefixItems) ─────────────
+
+    [Test]
+    public void Ref_To_AllOf_Index_Resolves()
+    {
+        var json = """
+        {
+            "$defs": {
+                "comp": { "allOf": [{"type":"string"}, {"minLength":1}] }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/comp/0" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        schema!.Root.Properties!["x"].ResolvedRef.Should().NotBeNull();
+    }
+
+    [Test]
+    public void Ref_To_PrefixItems_Index_Resolves()
+    {
+        var json = """
+        {
+            "$defs": {
+                "arr": { "type": "array", "prefixItems": [{"type":"string"}, {"type":"number"}] }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/arr/1" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        schema!.Root.Properties!["x"].ResolvedRef.Should().NotBeNull();
+    }
+
+    // ── Container keyword without key segment ────────────────────────────
+
+    [Test]
+    public void Ref_To_Container_Without_Key_Fails()
+    {
+        var json = """
+        {
+            "$defs": {
+                "obj": { "type": "object", "properties": { "a": {"type":"string"} } }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/obj/properties" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeFalse();
+    }
+
+    // ── Invalid index in JSON Pointer ─────────────────────────────────────
+
+    [Test]
+    public void Ref_To_Invalid_Index_Fails()
+    {
+        var json = """
+        {
+            "$defs": {
+                "comp": { "allOf": [{"type":"string"}] }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/comp/99" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeFalse();
+    }
+
+    // ── Ref to patternProperties via container ───────────────────────────
+
+    [Test]
+    public void Ref_To_PatternProperties_Entry_Resolves()
+    {
+        var json = """
+        {
+            "$defs": {
+                "obj": {
+                    "type": "object",
+                    "patternProperties": { "^s": { "type": "string" } }
+                }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/obj/patternProperties/^s" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        schema!.Root.Properties!["x"].ResolvedRef.Should().NotBeNull();
+    }
+
+    // ── Ref to dependentSchemas entry ─────────────────────────────────────
+
+    [Test]
+    public void Ref_To_DependentSchemas_Entry_Resolves()
+    {
+        var json = """
+        {
+            "$defs": {
+                "obj": {
+                    "type": "object",
+                    "dependentSchemas": { "a": { "required": ["b"] } }
+                }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/obj/dependentSchemas/a" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        schema!.Root.Properties!["x"].ResolvedRef.Should().NotBeNull();
+    }
+
+    // ── RFC 6901 escaping (~0, ~1) ───────────────────────────────────────
+
+    [Test]
+    public void Ref_With_Tilde_Escaped_Segment()
+    {
+        var json = """
+        {
+            "$defs": {
+                "a~b": { "type": "string" }
+            },
+            "properties": {
+                "x": { "$ref": "#/$defs/a~0b" }
+            }
+        }
+        """;
+
+        var result = JsonContractSchema.TryLoad(json, out var schema);
+
+        result.Should().BeTrue();
+        schema!.Root.Properties!["x"].ResolvedRef.Should().NotBeNull();
+    }
 }

@@ -88,44 +88,27 @@ public class KeywordValidatorTypeTests
 
     // ── IsInteger ────────────────────────────────────────────────────────
 
-    [Test]
-    public void IsInteger_WholeNumber_ReturnsTrue()
+    [TestCase("42", true)]
+    [TestCase("0", true)]
+    [TestCase("-42", true)]
+    [TestCase("1.0", true)]          // mathematical integer per JSON Schema spec
+    [TestCase("1e2", true)]          // 100
+    [TestCase("1.5e1", true)]        // 15
+    [TestCase("9223372036854775807", true)] // Int64.MaxValue
+    [TestCase("1.5", false)]
+    [TestCase("-1.5", false)]
+    [TestCase("1.5e0", false)]       // 1.5, not integer
+    [TestCase("9999999999999999999", false)] // beyond Int64 range
+    public void IsInteger_ReturnsExpected(string input, bool expected)
     {
-        KeywordValidator.IsInteger("42"u8).Should().BeTrue();
+        var bytes = Encoding.UTF8.GetBytes(input);
+        KeywordValidator.IsInteger(bytes).Should().Be(expected);
     }
 
     [Test]
-    public void IsInteger_DecimalPointZero_ReturnsTrue()
+    public void IsInteger_NotANumber_ReturnsFalse()
     {
-        // 1.0 is a mathematical integer per JSON Schema spec
-        KeywordValidator.IsInteger("1.0"u8).Should().BeTrue();
-    }
-
-    [Test]
-    public void IsInteger_FractionalValue_ReturnsFalse()
-    {
-        KeywordValidator.IsInteger("1.5"u8).Should().BeFalse();
-    }
-
-    [Test]
-    public void IsInteger_ScientificNotationInteger_ReturnsTrue()
-    {
-        // 1e2 = 100, which is an integer
-        KeywordValidator.IsInteger("1e2"u8).Should().BeTrue();
-    }
-
-    [Test]
-    public void IsInteger_ScientificNotationWithDecimal_ReturnsTrue()
-    {
-        // 1.5e1 = 15, which is an integer
-        KeywordValidator.IsInteger("1.5e1"u8).Should().BeTrue();
-    }
-
-    [Test]
-    public void IsInteger_BeyondInt64Range_ReturnsFalse()
-    {
-        // Beyond Int64.MaxValue -- pragmatic limit
-        KeywordValidator.IsInteger("9999999999999999999"u8).Should().BeFalse();
+        KeywordValidator.IsInteger("\"text\""u8).Should().BeFalse();
     }
 
     // ── ValidateType — happy paths ───────────────────────────────────────
@@ -277,5 +260,56 @@ public class KeywordValidatorTypeTests
         collector.Count.Should().Be(2);
         collector[0].Path.Should().Be("/a");
         collector[1].Path.Should().Be("/b");
+    }
+
+    // ── CheckType (zero-allocation) ─────────────────────────────────────
+
+    [Test]
+    public void CheckType_Match_ReturnsTrue()
+    {
+        KeywordValidator.CheckType(SchemaType.String, JsonByteTokenType.String, false)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_Mismatch_ReturnsFalse()
+    {
+        KeywordValidator.CheckType(SchemaType.String, JsonByteTokenType.Number, false)
+            .Should().BeFalse();
+    }
+
+    [Test]
+    public void CheckType_IntegerMatchesNumber_ReturnsTrue()
+    {
+        KeywordValidator.CheckType(SchemaType.Number, JsonByteTokenType.Number, true)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_IntegerMatchesInteger_ReturnsTrue()
+    {
+        KeywordValidator.CheckType(SchemaType.Integer, JsonByteTokenType.Number, true)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_NonIntegerNumber_DoesNotMatchInteger()
+    {
+        KeywordValidator.CheckType(SchemaType.Integer, JsonByteTokenType.Number, false)
+            .Should().BeFalse();
+    }
+
+    [Test]
+    public void CheckType_MultiType_MatchesAny()
+    {
+        KeywordValidator.CheckType(SchemaType.String | SchemaType.Null, JsonByteTokenType.Null, false)
+            .Should().BeTrue();
+    }
+
+    [Test]
+    public void CheckType_NoneToken_MatchesNothing()
+    {
+        KeywordValidator.CheckType(SchemaType.String, JsonByteTokenType.None, false)
+            .Should().BeFalse();
     }
 }

@@ -68,7 +68,8 @@ public class DisposeAllocationTests
     public void Dispose_AllocatesZeroBytes()
     {
         // Pre-parse to have a result to dispose
-        _schema.TryParse(_payload, out var result);
+        var parsed = _schema.Parse(_payload);
+        var result = parsed!.Value;
 
         var bytes = MeasureAllocations(() =>
         {
@@ -81,7 +82,8 @@ public class DisposeAllocationTests
     [Test]
     public void DoubleDispose_AllocatesZeroBytes()
     {
-        _schema.TryParse(_payload, out var result);
+        var parsed = _schema.Parse(_payload);
+        var result = parsed!.Value;
         result.Dispose(); // First dispose
 
         var bytes = MeasureAllocations(() =>
