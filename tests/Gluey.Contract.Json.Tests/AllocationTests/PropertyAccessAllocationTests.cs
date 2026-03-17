@@ -67,7 +67,8 @@ public class PropertyAccessAllocationTests
     public void PropertyAccess_StringIndexer_WithinAllocationBudget()
     {
         // Pre-parse and keep result alive for indexer measurement
-        _schema.TryParse(_payload, out var result);
+        var parsed = _schema.Parse(_payload);
+        var result = parsed!.Value;
 
         try
         {
@@ -91,7 +92,8 @@ public class PropertyAccessAllocationTests
     [Test]
     public void PropertyAccess_OrdinalIndexer_AllocatesZeroBytes()
     {
-        _schema.TryParse(_payload, out var result);
+        var parsed = _schema.Parse(_payload);
+        var result = parsed!.Value;
 
         try
         {

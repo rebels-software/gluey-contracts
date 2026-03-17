@@ -28,55 +28,28 @@ public class JsonContractSchemaApiTests
         JsonContractSchema.Load("""{"type":"object","properties":{"name":{"type":"string"}}}""")!;
 
     [Test]
-    public void TryParse_ValidInput_ReturnsTrue()
-    {
-        var schema = CreateSchema();
-        ReadOnlySpan<byte> data = SampleJsonBytes;
-
-        bool success = schema.TryParse(data, out ParseResult result);
-
-        success.Should().BeTrue();
-        result.Dispose();
-    }
-
-    [Test]
-    public void TryParse_ValidInput_ResultIsValid()
-    {
-        var schema = CreateSchema();
-        ReadOnlySpan<byte> data = SampleJsonBytes;
-
-        schema.TryParse(data, out ParseResult result);
-
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count.Should().Be(0);
-        result.Dispose();
-    }
-
-    [Test]
     public void Parse_ValidInput_ReturnsNonNull()
     {
         var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
-        ParseResult? result = schema.Parse(data);
+        using var result = schema.Parse(data);
 
         result.Should().NotBeNull();
         result!.Value.IsValid.Should().BeTrue();
-        result.Value.Dispose();
     }
 
     [Test]
-    public void TryParse_DoesNotThrow()
+    public void Parse_ValidInput_ResultIsValid()
     {
         var schema = CreateSchema();
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
-        // Direct call -- ReadOnlySpan cannot be captured in lambdas
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        // If we reached here, no exception was thrown
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
+        result.Value.Errors.Count.Should().Be(0);
     }
 
     [Test]
@@ -86,52 +59,13 @@ public class JsonContractSchemaApiTests
         ReadOnlySpan<byte> data = SampleJsonBytes;
 
         // Direct call -- ReadOnlySpan cannot be captured in lambdas
-        ParseResult? result = schema.Parse(data);
+        using var result = schema.Parse(data);
 
         // If we reached here, no exception was thrown
         result.Should().NotBeNull();
-        result!.Value.Dispose();
     }
 
-    // ── TryParse byte[] overload ─────────────────────────────────────
-
-    [Test]
-    public void TryParse_ByteArray_ValidInput_ReturnsTrue()
-    {
-        var schema = CreateSchema();
-        var data = SampleJsonBytes;
-
-        bool success = schema.TryParse(data, out var result);
-
-        success.Should().BeTrue();
-        result.IsValid.Should().BeTrue();
-        result["/name"].HasValue.Should().BeTrue();
-        result.Dispose();
-    }
-
-    [Test]
-    public void TryParse_ByteArray_InvalidInput_ReturnsFalse()
-    {
-        var schema = JsonContractSchema.Load("""{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""")!;
-        var data = Encoding.UTF8.GetBytes("{}");
-
-        bool success = schema.TryParse(data, out var result);
-
-        success.Should().BeFalse();
-        result.IsValid.Should().BeFalse();
-        result.Dispose();
-    }
-
-    [Test]
-    public void TryParse_ByteArray_MalformedJson_ReturnsFalse()
-    {
-        var schema = CreateSchema();
-        var data = Encoding.UTF8.GetBytes("{bad json");
-
-        bool success = schema.TryParse(data, out var result);
-
-        success.Should().BeFalse();
-    }
+    // ── Parse byte[] overload ─────────────────────────────────────
 
     [Test]
     public void Parse_ByteArray_ValidInput_ReturnsResult()
@@ -139,12 +73,23 @@ public class JsonContractSchemaApiTests
         var schema = CreateSchema();
         var data = SampleJsonBytes;
 
-        var result = schema.Parse(data);
+        using var result = schema.Parse(data);
 
         result.Should().NotBeNull();
         result!.Value.IsValid.Should().BeTrue();
         result.Value["/name"].HasValue.Should().BeTrue();
-        result.Value.Dispose();
+    }
+
+    [Test]
+    public void Parse_ByteArray_InvalidInput_ReturnsResultWithErrors()
+    {
+        var schema = JsonContractSchema.Load("""{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""")!;
+        var data = Encoding.UTF8.GetBytes("{}");
+
+        using var result = schema.Parse(data);
+
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     [Test]
@@ -159,7 +104,7 @@ public class JsonContractSchemaApiTests
     }
 
     [Test]
-    public void Parse_ByteArray_InvalidSchema_ReturnsResultWithErrors()
+    public void Parse_ByteArray_InvalidSchema_ReturnsResultWithErrorDetails()
     {
         var schema = JsonContractSchema.Load("""{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""")!;
         var data = Encoding.UTF8.GetBytes("{}");
@@ -172,18 +117,7 @@ public class JsonContractSchemaApiTests
         result.Value.Dispose();
     }
 
-    // ── TryParse Span overload with malformed JSON ───────────────────
-
-    [Test]
-    public void TryParse_Span_MalformedJson_ReturnsFalse()
-    {
-        var schema = CreateSchema();
-        ReadOnlySpan<byte> data = Encoding.UTF8.GetBytes("{bad json");
-
-        bool success = schema.TryParse(data, out var result);
-
-        success.Should().BeFalse();
-    }
+    // ── Parse Span overload with malformed JSON ───────────────────
 
     [Test]
     public void Parse_Span_MalformedJson_ReturnsNull()

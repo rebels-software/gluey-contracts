@@ -19,8 +19,8 @@ using Gluey.Contract.Json;
 namespace Gluey.Contract.Json.Tests.AllocationTests;
 
 /// <summary>
-/// Allocation regression tests for TryParse paths.
-/// Asserts that TryParse allocations stay within a tight budget.
+/// Allocation regression tests for Parse paths.
+/// Asserts that Parse allocations stay within a tight budget.
 ///
 /// After pooling optimization, both paths should be zero-allocation after warmup:
 /// - ErrorCollector uses ArrayPool (no heap alloc after warmup)
@@ -29,19 +29,19 @@ namespace Gluey.Contract.Json.Tests.AllocationTests;
 /// Tests guard against regression by enforcing a ceiling.
 /// </summary>
 [TestFixture]
-public class TryParseAllocationTests
+public class ParseAllocationTests
 {
     private JsonContractSchema _schema = null!;
     private byte[] _payload = null!;
 
     /// <summary>
-    /// Allocation budget for byte[] TryParse path.
+    /// Allocation budget for byte[] Parse path.
     /// After ArrayBuffer pooling: zero heap allocation expected after warmup.
     /// </summary>
     private const long ByteArrayBudget = 64;
 
     /// <summary>
-    /// Allocation budget for ReadOnlySpan TryParse (validate-only) path.
+    /// Allocation budget for ReadOnlySpan Parse (validate-only) path.
     /// After zero-allocation optimization: zero heap allocation expected.
     /// </summary>
     private const long SpanBudget = 64;
@@ -80,28 +80,28 @@ public class TryParseAllocationTests
     }
 
     [Test]
-    public void TryParse_ByteArray_WithinAllocationBudget()
+    public void Parse_ByteArray_WithinAllocationBudget()
     {
         var bytes = MeasureAllocations(() =>
         {
-            _schema.TryParse(_payload, out var result);
-            result.Dispose();
+            var result = _schema.Parse(_payload);
+            result!.Value.Dispose();
         });
 
         bytes.Should().BeLessThan(ByteArrayBudget,
-            "TryParse(byte[]) allocations should be zero after warmup (ArrayBuffer pooled, ArrayPool cached)");
+            "Parse(byte[]) allocations should be zero after warmup (ArrayBuffer pooled, ArrayPool cached)");
     }
 
     [Test]
-    public void TryParse_ReadOnlySpan_WithinAllocationBudget()
+    public void Parse_ReadOnlySpan_WithinAllocationBudget()
     {
         var bytes = MeasureAllocations(() =>
         {
-            _schema.TryParse((ReadOnlySpan<byte>)_payload, out var result);
-            result.Dispose();
+            var result = _schema.Parse((ReadOnlySpan<byte>)_payload);
+            result!.Value.Dispose();
         });
 
         bytes.Should().BeLessThan(SpanBudget,
-            "TryParse(ReadOnlySpan<byte>) allocations should be zero after warmup (ArrayPool cached)");
+            "Parse(ReadOnlySpan<byte>) allocations should be zero after warmup (ArrayPool cached)");
     }
 }

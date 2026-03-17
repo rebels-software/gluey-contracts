@@ -49,11 +49,11 @@ public class NestedPropertyAccessTests
         """);
         var data = Utf8("""{"address":{"street":"123 Main St","city":"Springfield"}}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/address"]["street"].HasValue.Should().BeTrue();
-        result["/address"]["street"].GetString().Should().Be("123 Main St");
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/address"]["street"].HasValue.Should().BeTrue();
+        result.Value["/address"]["street"].GetString().Should().Be("123 Main St");
     }
 
     [Test]
@@ -75,11 +75,11 @@ public class NestedPropertyAccessTests
         """);
         var data = Utf8("""{"address":{"street":"123 Main St","city":"Springfield"}}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/address"]["city"].HasValue.Should().BeTrue();
-        result["/address"]["city"].GetString().Should().Be("Springfield");
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/address"]["city"].HasValue.Should().BeTrue();
+        result.Value["/address"]["city"].GetString().Should().Be("Springfield");
     }
 
     [Test]
@@ -100,10 +100,10 @@ public class NestedPropertyAccessTests
         """);
         var data = Utf8("""{"address":{"street":"123 Main St"}}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/address"]["missing"].HasValue.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/address"]["missing"].HasValue.Should().BeFalse();
     }
 
     [Test]
@@ -119,11 +119,11 @@ public class NestedPropertyAccessTests
         """);
         var data = Utf8("""{"name":"Alice"}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
+        result.Should().NotBeNull();
         // "name" is a string, not an object -- string indexer should return Empty
-        result["/name"]["anything"].HasValue.Should().BeFalse();
-        result.Dispose();
+        result!.Value["/name"]["anything"].HasValue.Should().BeFalse();
     }
 
     // ── Slash-prefix normalization ──────────────────────────────────────
@@ -141,11 +141,11 @@ public class NestedPropertyAccessTests
         """);
         var data = Utf8("""{"name":"Alice"}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["name"].HasValue.Should().BeTrue();
-        result["name"].GetString().Should().Be("Alice");
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["name"].HasValue.Should().BeTrue();
+        result.Value["name"].GetString().Should().Be("Alice");
     }
 
     [Test]
@@ -166,11 +166,11 @@ public class NestedPropertyAccessTests
         """);
         var data = Utf8("""{"address":{"street":"Main"}}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["address"]["street"].HasValue.Should().BeTrue();
-        result["address"]["street"].GetString().Should().Be("Main");
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["address"]["street"].HasValue.Should().BeTrue();
+        result.Value["address"]["street"].GetString().Should().Be("Main");
     }
 
     [Test]
@@ -186,11 +186,11 @@ public class NestedPropertyAccessTests
         """);
         var data = Utf8("""{"name":"Alice"}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/name"].HasValue.Should().BeTrue();
-        result["/name"].GetString().Should().Be("Alice");
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/name"].HasValue.Should().BeTrue();
+        result.Value["/name"].GetString().Should().Be("Alice");
     }
 
     // ── Deep nesting ─────────────────────────────────────────────────────
@@ -218,10 +218,10 @@ public class NestedPropertyAccessTests
         """);
         var data = Utf8("""{"a":{"b":{"c":"deep"}}}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        result["/a"]["b"]["c"].HasValue.Should().BeTrue();
-        result["/a"]["b"]["c"].GetString().Should().Be("deep");
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value["/a"]["b"]["c"].HasValue.Should().BeTrue();
+        result.Value["/a"]["b"]["c"].GetString().Should().Be("deep");
     }
 }

@@ -34,46 +34,45 @@ public class SchemaWalkerTests
     // ── Valid parsing ────────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_ValidObject_ReturnsTrue()
+    public void Parse_ValidObject_ReturnsValid()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""");
         var data = Utf8("""{"name":"Alice"}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.IsValid.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_ValidObject_PopulatesOffsetTable()
+    public void Parse_ValidObject_PopulatesOffsetTable()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"integer"}}}""");
         var data = Utf8("""{"name":"Bob","age":30}""");
 
-        schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
+        result.Should().NotBeNull();
         // OffsetTable keyed by RFC 6901 path (SchemaIndexer uses child.Path)
-        result["/name"].HasValue.Should().BeTrue();
-        result["/name"].GetString().Should().Be("Bob");
-        result["/age"].HasValue.Should().BeTrue();
-        result["/age"].GetInt32().Should().Be(30);
-        result.Dispose();
+        result!.Value["/name"].HasValue.Should().BeTrue();
+        result.Value["/name"].GetString().Should().Be("Bob");
+        result.Value["/age"].HasValue.Should().BeTrue();
+        result.Value["/age"].GetInt32().Should().Be(30);
     }
 
     // ── Type mismatch ────────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_TypeMismatch_ReturnsFalse()
+    public void Parse_TypeMismatch_ReturnsFalse()
     {
         var schema = LoadSchema("""{"type":"string"}""");
         var data = Utf8("42");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     [Test]
@@ -94,129 +93,129 @@ public class SchemaWalkerTests
     // ── Missing required ─────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_MissingRequired_ReturnsFalse()
+    public void Parse_MissingRequired_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""");
         var data = Utf8("{}");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.RequiredMissing);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.RequiredMissing);
     }
 
     // ── AdditionalProperties false ───────────────────────────────────────
 
     [Test]
-    public void TryParse_AdditionalPropertiesFalse_RejectsExtra()
+    public void Parse_AdditionalPropertiesFalse_RejectsExtra()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"name":{"type":"string"}},"additionalProperties":false}""");
         var data = Utf8("""{"name":"Alice","extra":"value"}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.AdditionalPropertyNotAllowed);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.AdditionalPropertyNotAllowed);
     }
 
     // ── Numeric constraints ──────────────────────────────────────────────
 
     [Test]
-    public void TryParse_MinimumViolation_ReturnsFalse()
+    public void Parse_MinimumViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"number","minimum":10}""");
         var data = Utf8("5");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MinimumExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MinimumExceeded);
     }
 
     // ── String constraints ───────────────────────────────────────────────
 
     [Test]
-    public void TryParse_MinLengthViolation_ReturnsFalse()
+    public void Parse_MinLengthViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"string","minLength":5}""");
         var data = Utf8("\"ab\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MinLengthExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MinLengthExceeded);
     }
 
     // ── Array constraints ────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_MinItemsViolation_ReturnsFalse()
+    public void Parse_MinItemsViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"array","items":{"type":"integer"},"minItems":3}""");
         var data = Utf8("[1]");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MinItemsExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MinItemsExceeded);
     }
 
     // ── Enum/Const ───────────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_EnumViolation_ReturnsFalse()
+    public void Parse_EnumViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"enum":["red","green","blue"]}""");
         var data = Utf8("\"yellow\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.EnumMismatch);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.EnumMismatch);
     }
 
     [Test]
-    public void TryParse_ConstValid_ReturnsTrue()
+    public void Parse_ConstValid_ReturnsValid()
     {
         var schema = LoadSchema("""{"const":"hello"}""");
         var data = Utf8("\"hello\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── Composition: allOf ───────────────────────────────────────────────
 
     [Test]
-    public void TryParse_AllOfValid_ReturnsTrue()
+    public void Parse_AllOfValid_ReturnsValid()
     {
         var schema = LoadSchema("""{"allOf":[{"type":"number"},{"minimum":0}]}""");
         var data = Utf8("5");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_AllOfInvalid_ReturnsFalse()
+    public void Parse_AllOfInvalid_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"allOf":[{"type":"number"},{"minimum":10}]}""");
         var data = Utf8("5");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     // ── Malformed JSON ───────────────────────────────────────────────────
@@ -235,7 +234,7 @@ public class SchemaWalkerTests
     // ── Boolean schema ───────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_BooleanSchemaFalse_Rejects()
+    public void Parse_BooleanSchemaFalse_Rejects()
     {
         // Boolean schema false: schema that rejects everything
         // We need a schema that has a subschema = false. Use "not": true (equivalent to false for the value).
@@ -245,64 +244,64 @@ public class SchemaWalkerTests
         var schema = LoadSchema("""{"not":{}}""");
         var data = Utf8("42");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.NotInvalid);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.NotInvalid);
     }
 
     // ── $ref transparent follow ──────────────────────────────────────────
 
     [Test]
-    public void TryParse_RefFollow_ValidatesAgainstTarget()
+    public void Parse_RefFollow_ValidatesAgainstTarget()
     {
         var schema = LoadSchema("""{"$ref":"#/$defs/str","$defs":{"str":{"type":"string"}}}""");
         var data = Utf8("\"hello\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_RefFollow_RejectsInvalid()
+    public void Parse_RefFollow_RejectsInvalid()
     {
         var schema = LoadSchema("""{"$ref":"#/$defs/str","$defs":{"str":{"type":"string"}}}""");
         var data = Utf8("42");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     // ── Format assertion ─────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_FormatAsserted_RejectsInvalidEmail()
+    public void Parse_FormatAsserted_RejectsInvalidEmail()
     {
         var schema = LoadSchema("""{"type":"string","format":"email"}""", assertFormat: true);
         var data = Utf8("\"not-an-email\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.FormatInvalid);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.FormatInvalid);
     }
 
     [Test]
-    public void TryParse_FormatNotAsserted_AcceptsInvalidEmail()
+    public void Parse_FormatNotAsserted_AcceptsInvalidEmail()
     {
         var schema = LoadSchema("""{"type":"string","format":"email"}""", assertFormat: false);
         var data = Utf8("\"not-an-email\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── Multiple errors collected ────────────────────────────────────────
@@ -323,69 +322,69 @@ public class SchemaWalkerTests
     // ── ReadOnlySpan overload validates without OffsetTable ───────────────
 
     [Test]
-    public void TryParse_SpanOverload_ValidatesButNoOffsetTable()
+    public void Parse_SpanOverload_ValidatesButNoOffsetTable()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}""");
         ReadOnlySpan<byte> data = Utf8("""{"name":"Alice"}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
         // Span overload does not populate OffsetTable -- indexers return Empty
-        result["/name"].HasValue.Should().BeFalse();
-        result.Dispose();
+        result.Value["/name"].HasValue.Should().BeFalse();
     }
 
     // ── Nested object validation ─────────────────────────────────────────
 
     [Test]
-    public void TryParse_NestedObject_ValidatesRecursively()
+    public void Parse_NestedObject_ValidatesRecursively()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"address":{"type":"object","properties":{"city":{"type":"string"}},"required":["city"]}}}""");
         var data = Utf8("""{"address":{"city":"NYC"}}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_NestedObject_ValidationFailure()
+    public void Parse_NestedObject_ValidationFailure()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"address":{"type":"object","properties":{"city":{"type":"string"}},"required":["city"]}}}""");
         var data = Utf8("""{"address":{}}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     // ── Array with items validation ──────────────────────────────────────
 
     [Test]
-    public void TryParse_ArrayItems_ValidatesEachElement()
+    public void Parse_ArrayItems_ValidatesEachElement()
     {
         var schema = LoadSchema("""{"type":"array","items":{"type":"string"}}""");
         var data = Utf8("""["a","b","c"]""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_ArrayItems_RejectsInvalidElement()
+    public void Parse_ArrayItems_RejectsInvalidElement()
     {
         var schema = LoadSchema("""{"type":"array","items":{"type":"string"}}""");
         var data = Utf8("""["a",42,"c"]""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     // ── InvalidJson error code exists ────────────────────────────────────
@@ -401,272 +400,272 @@ public class SchemaWalkerTests
     // ── Const violation ──────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_ConstViolation_ReturnsFalse()
+    public void Parse_ConstViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"const":"hello"}""");
         var data = Utf8("\"world\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.ConstMismatch);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.ConstMismatch);
     }
 
     // ── Numeric constraints: maximum, exclusiveMin/Max, multipleOf ──────
 
     [Test]
-    public void TryParse_MaximumViolation_ReturnsFalse()
+    public void Parse_MaximumViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"number","maximum":10}""");
         var data = Utf8("15");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MaximumExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MaximumExceeded);
     }
 
     [Test]
-    public void TryParse_ExclusiveMinimumViolation_ReturnsFalse()
+    public void Parse_ExclusiveMinimumViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"number","exclusiveMinimum":10}""");
         var data = Utf8("10");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.ExclusiveMinimumExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.ExclusiveMinimumExceeded);
     }
 
     [Test]
-    public void TryParse_ExclusiveMaximumViolation_ReturnsFalse()
+    public void Parse_ExclusiveMaximumViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"number","exclusiveMaximum":10}""");
         var data = Utf8("10");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.ExclusiveMaximumExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.ExclusiveMaximumExceeded);
     }
 
     [Test]
-    public void TryParse_MultipleOfViolation_ReturnsFalse()
+    public void Parse_MultipleOfViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"number","multipleOf":3}""");
         var data = Utf8("7");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MultipleOfInvalid);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MultipleOfInvalid);
     }
 
     // ── String constraints: maxLength, pattern ──────────────────────────
 
     [Test]
-    public void TryParse_MaxLengthViolation_ReturnsFalse()
+    public void Parse_MaxLengthViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"string","maxLength":3}""");
         var data = Utf8("\"hello\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MaxLengthExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MaxLengthExceeded);
     }
 
     [Test]
-    public void TryParse_PatternViolation_ReturnsFalse()
+    public void Parse_PatternViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"string","pattern":"^[a-z]+$"}""");
         var data = Utf8("\"ABC123\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.PatternMismatch);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.PatternMismatch);
     }
 
     // ── Array constraints: maxItems ─────────────────────────────────────
 
     [Test]
-    public void TryParse_MaxItemsViolation_ReturnsFalse()
+    public void Parse_MaxItemsViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"array","items":{"type":"integer"},"maxItems":2}""");
         var data = Utf8("[1,2,3]");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MaxItemsExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MaxItemsExceeded);
     }
 
     // ── Composition: anyOf, oneOf, not ──────────────────────────────────
 
     [Test]
-    public void TryParse_AnyOfValid_ReturnsTrue()
+    public void Parse_AnyOfValid_ReturnsValid()
     {
         var schema = LoadSchema("""{"anyOf":[{"type":"string"},{"type":"number"}]}""");
         var data = Utf8("\"hello\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_AnyOfInvalid_ReturnsFalse()
+    public void Parse_AnyOfInvalid_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"anyOf":[{"type":"string"},{"type":"number"}]}""");
         var data = Utf8("true");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.AnyOfInvalid);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.AnyOfInvalid);
     }
 
     [Test]
-    public void TryParse_OneOfValid_ReturnsTrue()
+    public void Parse_OneOfValid_ReturnsValid()
     {
         var schema = LoadSchema("""{"oneOf":[{"type":"string"},{"type":"number"}]}""");
         var data = Utf8("42");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_OneOfMultipleMatch_ReturnsFalse()
+    public void Parse_OneOfMultipleMatch_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"oneOf":[{"type":"number"},{"minimum":0}]}""");
         var data = Utf8("5");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.OneOfInvalid);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.OneOfInvalid);
     }
 
     [Test]
-    public void TryParse_NotValid_ReturnsFalse()
+    public void Parse_NotValid_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"not":{"type":"string"}}""");
         var data = Utf8("\"hello\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.NotInvalid);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.NotInvalid);
     }
 
     [Test]
-    public void TryParse_NotInvalid_ReturnsTrue()
+    public void Parse_NotInvalid_ReturnsValid()
     {
         var schema = LoadSchema("""{"not":{"type":"string"}}""");
         var data = Utf8("42");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── Conditionals: if/then/else ──────────────────────────────────────
 
     [Test]
-    public void TryParse_IfThen_ConditionTrue_AppliesThen()
+    public void Parse_IfThen_ConditionTrue_AppliesThen()
     {
         var schema = LoadSchema("""{"if":{"type":"number"},"then":{"minimum":10}}""");
         var data = Utf8("5");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     [Test]
-    public void TryParse_IfThen_ConditionTrue_PassesThen()
+    public void Parse_IfThen_ConditionTrue_PassesThen()
     {
         var schema = LoadSchema("""{"if":{"type":"number"},"then":{"minimum":10}}""");
         var data = Utf8("15");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_IfElse_ConditionFalse_AppliesElse()
+    public void Parse_IfElse_ConditionFalse_AppliesElse()
     {
         var schema = LoadSchema("""{"if":{"type":"number"},"else":{"type":"string"}}""");
         var data = Utf8("true");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     [Test]
-    public void TryParse_IfElse_ConditionFalse_PassesElse()
+    public void Parse_IfElse_ConditionFalse_PassesElse()
     {
         var schema = LoadSchema("""{"if":{"type":"number"},"else":{"type":"string"}}""");
         var data = Utf8("\"hello\"");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── Composition at object level ─────────────────────────────────────
 
     [Test]
-    public void TryParse_AllOfObject_Valid()
+    public void Parse_AllOfObject_Valid()
     {
         var schema = LoadSchema("""{"allOf":[{"type":"object","required":["a"]},{"type":"object","required":["b"]}]}""");
         var data = Utf8("""{"a":1,"b":2}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_AllOfObject_Invalid()
+    public void Parse_AllOfObject_Invalid()
     {
         var schema = LoadSchema("""{"allOf":[{"type":"object","required":["a"]},{"type":"object","required":["b"]}]}""");
         var data = Utf8("""{"a":1}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     // ── Conditionals at object level ────────────────────────────────────
 
     [Test]
-    public void TryParse_IfThenObject_ConditionTrue_AppliesThen()
+    public void Parse_IfThenObject_ConditionTrue_AppliesThen()
     {
         var schema = LoadSchema("""
         {
@@ -678,14 +677,14 @@ public class SchemaWalkerTests
         """);
         var data = Utf8("""{"kind":"number"}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     [Test]
-    public void TryParse_IfThenObject_ConditionTrue_PassesThen()
+    public void Parse_IfThenObject_ConditionTrue_PassesThen()
     {
         var schema = LoadSchema("""
         {
@@ -697,219 +696,219 @@ public class SchemaWalkerTests
         """);
         var data = Utf8("""{"kind":"number","value":42}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── Composition at array level ──────────────────────────────────────
 
     [Test]
-    public void TryParse_AllOfArray_Valid()
+    public void Parse_AllOfArray_Valid()
     {
         var schema = LoadSchema("""{"allOf":[{"type":"array","minItems":1},{"type":"array","maxItems":3}]}""");
         var data = Utf8("[1,2]");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_AllOfArray_Invalid()
+    public void Parse_AllOfArray_Invalid()
     {
         var schema = LoadSchema("""{"allOf":[{"type":"array","minItems":1},{"type":"array","maxItems":2}]}""");
         var data = Utf8("[1,2,3]");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     // ── AdditionalProperties as schema ──────────────────────────────────
 
     [Test]
-    public void TryParse_AdditionalPropertiesSchema_ValidatesExtra()
+    public void Parse_AdditionalPropertiesSchema_ValidatesExtra()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"name":{"type":"string"}},"additionalProperties":{"type":"number"}}""");
         var data = Utf8("""{"name":"Alice","extra":"notANumber"}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     [Test]
-    public void TryParse_AdditionalPropertiesSchema_AcceptsValidExtra()
+    public void Parse_AdditionalPropertiesSchema_AcceptsValidExtra()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"name":{"type":"string"}},"additionalProperties":{"type":"number"}}""");
         var data = Utf8("""{"name":"Alice","extra":42}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── DependentRequired ───────────────────────────────────────────────
 
     [Test]
-    public void TryParse_DependentRequired_Violation()
+    public void Parse_DependentRequired_Violation()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"a":{},"b":{}},"dependentRequired":{"a":["b"]}}""");
         var data = Utf8("""{"a":1}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     [Test]
-    public void TryParse_DependentRequired_Satisfied()
+    public void Parse_DependentRequired_Satisfied()
     {
         var schema = LoadSchema("""{"type":"object","properties":{"a":{},"b":{}},"dependentRequired":{"a":["b"]}}""");
         var data = Utf8("""{"a":1,"b":2}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── PropertyNames ───────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_PropertyNames_Violation()
+    public void Parse_PropertyNames_Violation()
     {
         var schema = LoadSchema("""{"type":"object","propertyNames":{"maxLength":3}}""");
         var data = Utf8("""{"longname":1}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     [Test]
-    public void TryParse_PropertyNames_Valid()
+    public void Parse_PropertyNames_Valid()
     {
         var schema = LoadSchema("""{"type":"object","propertyNames":{"maxLength":3}}""");
         var data = Utf8("""{"ab":1,"cd":2}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── MinProperties / MaxProperties ───────────────────────────────────
 
     [Test]
-    public void TryParse_MinPropertiesViolation_ReturnsFalse()
+    public void Parse_MinPropertiesViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"object","minProperties":2}""");
         var data = Utf8("""{"a":1}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MinPropertiesExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MinPropertiesExceeded);
     }
 
     [Test]
-    public void TryParse_MaxPropertiesViolation_ReturnsFalse()
+    public void Parse_MaxPropertiesViolation_ReturnsInvalid()
     {
         var schema = LoadSchema("""{"type":"object","maxProperties":1}""");
         var data = Utf8("""{"a":1,"b":2}""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Errors[0].Code.Should().Be(ValidationErrorCode.MaxPropertiesExceeded);
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
+        result.Value.Errors[0].Code.Should().Be(ValidationErrorCode.MaxPropertiesExceeded);
     }
 
     // ── PrefixItems ─────────────────────────────────────────────────────
 
     [Test]
-    public void TryParse_PrefixItems_ValidatesPositionally()
+    public void Parse_PrefixItems_ValidatesPositionally()
     {
         var schema = LoadSchema("""{"type":"array","prefixItems":[{"type":"string"},{"type":"number"}]}""");
         var data = Utf8("""["hello",42]""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_PrefixItems_RejectsWrongType()
+    public void Parse_PrefixItems_RejectsWrongType()
     {
         var schema = LoadSchema("""{"type":"array","prefixItems":[{"type":"string"},{"type":"number"}]}""");
         var data = Utf8("""[42,"hello"]""");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeFalse();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeFalse();
     }
 
     // ── Empty object/array ──────────────────────────────────────────────
 
     [Test]
-    public void TryParse_EmptyObject_Valid()
+    public void Parse_EmptyObject_Valid()
     {
         var schema = LoadSchema("""{"type":"object"}""");
         var data = Utf8("{}");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_EmptyArray_Valid()
+    public void Parse_EmptyArray_Valid()
     {
         var schema = LoadSchema("""{"type":"array"}""");
         var data = Utf8("[]");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     // ── Boolean/null scalar types ────────────────────────────────────────
 
     [Test]
-    public void TryParse_BooleanType_Valid()
+    public void Parse_BooleanType_Valid()
     {
         var schema = LoadSchema("""{"type":"boolean"}""");
         var data = Utf8("true");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 
     [Test]
-    public void TryParse_NullType_Valid()
+    public void Parse_NullType_Valid()
     {
         var schema = LoadSchema("""{"type":"null"}""");
         var data = Utf8("null");
 
-        bool success = schema.TryParse(data, out var result);
+        using var result = schema.Parse(data);
 
-        success.Should().BeTrue();
-        result.Dispose();
+        result.Should().NotBeNull();
+        result!.Value.IsValid.Should().BeTrue();
     }
 }

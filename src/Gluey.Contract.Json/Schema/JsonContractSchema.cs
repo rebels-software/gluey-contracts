@@ -31,11 +31,7 @@ namespace Gluey.Contract.Json;
 /// Both have string overloads for convenience.
 /// </para>
 /// <para>
-/// Provides a dual parse API:
-/// <list type="bullet">
-///   <item><see cref="TryParse"/> -- returns <c>bool</c> with an <c>out</c> parameter (try-pattern)</item>
-///   <item><see cref="Parse"/> -- returns <c>ParseResult?</c> and never throws</item>
-/// </list>
+/// Provides a parse API via <see cref="Parse"/> which returns <c>ParseResult?</c> and never throws.
 /// </para>
 /// </remarks>
 public class JsonContractSchema
@@ -153,68 +149,6 @@ public class JsonContractSchema
     }
 
     // ── Instance parse methods ──────────────────────────────────────────
-
-    /// <summary>
-    /// Attempts to parse and validate the given UTF-8 JSON data against this schema.
-    /// Validates only (no OffsetTable population) -- indexers return <see cref="ParsedProperty.Empty"/>.
-    /// </summary>
-    /// <param name="data">The raw UTF-8 bytes to parse.</param>
-    /// <param name="result">
-    /// When this method returns <c>true</c>, contains the <see cref="ParseResult"/>
-    /// with validation status. When <c>false</c>, contains <c>default</c>.
-    /// </param>
-    /// <returns><c>true</c> if JSON is valid and matches the schema; otherwise <c>false</c>.</returns>
-    public bool TryParse(ReadOnlySpan<byte> data, out ParseResult result)
-    {
-        var walkResult = SchemaWalker.Walk(data, _root, PropertyCount, AssertFormat);
-
-        if (walkResult.HasStructuralError)
-        {
-            walkResult.Errors.Dispose();
-            walkResult.Table.Dispose();
-            walkResult.ArrayBuffer?.Dispose();
-            result = default;
-            return false;
-        }
-
-        result = new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal, walkResult.ArrayBuffer);
-
-        if (walkResult.Errors.HasErrors)
-            return false;
-
-        return true;
-    }
-
-    /// <summary>
-    /// Attempts to parse and validate the given byte array against this schema.
-    /// Populates <see cref="OffsetTable"/> for property access via indexers.
-    /// </summary>
-    /// <param name="data">The raw UTF-8 byte array to parse.</param>
-    /// <param name="result">
-    /// When this method returns <c>true</c>, contains the <see cref="ParseResult"/>
-    /// with parsed properties and validation status. When <c>false</c>, contains <c>default</c>.
-    /// </param>
-    /// <returns><c>true</c> if JSON is valid and matches the schema; otherwise <c>false</c>.</returns>
-    public bool TryParse(byte[] data, out ParseResult result)
-    {
-        var walkResult = SchemaWalker.Walk(data, _root, _nameToOrdinal, PropertyCount, AssertFormat);
-
-        if (walkResult.HasStructuralError)
-        {
-            walkResult.Errors.Dispose();
-            walkResult.Table.Dispose();
-            walkResult.ArrayBuffer?.Dispose();
-            result = default;
-            return false;
-        }
-
-        result = new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal, walkResult.ArrayBuffer);
-
-        if (walkResult.Errors.HasErrors)
-            return false;
-
-        return true;
-    }
 
     /// <summary>
     /// Parses and validates the given UTF-8 JSON data against this schema.
