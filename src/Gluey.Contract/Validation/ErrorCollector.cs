@@ -90,6 +90,21 @@ public struct ErrorCollector : IDisposable
     }
 
     /// <summary>
+    /// Replaces the <see cref="ValidationError"/> at the specified index.
+    /// Used for post-validation enrichment with <c>x-error</c> metadata.
+    /// </summary>
+    /// <param name="index">Zero-based index of the error to replace.</param>
+    /// <param name="error">The replacement error.</param>
+    internal void Replace(int index, ValidationError error)
+    {
+        if (_errors is not null && _countHolder is not null
+            && (uint)index < (uint)_countHolder[0])
+        {
+            _errors[index] = error;
+        }
+    }
+
+    /// <summary>
     /// Gets the <see cref="ValidationError"/> at the specified index.
     /// </summary>
     /// <param name="index">Zero-based index of the error.</param>

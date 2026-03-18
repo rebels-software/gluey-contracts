@@ -205,6 +205,14 @@ internal sealed class SchemaNode
     /// <summary>The <c>deprecated</c> keyword.</summary>
     internal bool? Deprecated { get; }
 
+    // ── Extension — x-error ──────────────────────────────────────────────
+
+    /// <summary>
+    /// Custom error metadata from the <c>x-error</c> JSON Schema extension.
+    /// When present, validation errors for this node are enriched with the specified code, title, detail, and/or type.
+    /// </summary>
+    internal SchemaErrorInfo? ErrorInfo { get; }
+
     // ── Boolean schema sentinel ──────────────────────────────────────────
 
     /// <summary>
@@ -278,7 +286,9 @@ internal sealed class SchemaNode
         string? format = null,
         bool? deprecated = null,
         // Boolean schema
-        bool? booleanSchema = null)
+        bool? booleanSchema = null,
+        // Extension — x-error
+        SchemaErrorInfo? errorInfo = null)
     {
         Path = path;
         Id = id;
@@ -329,6 +339,7 @@ internal sealed class SchemaNode
         Description = description;
         Format = format;
         Deprecated = deprecated;
+        ErrorInfo = errorInfo;
         BooleanSchema = booleanSchema;
     }
 

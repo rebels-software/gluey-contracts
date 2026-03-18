@@ -172,6 +172,7 @@ public class JsonContractSchema
             return null;
         }
 
+        EnrichErrors(ref walkResult.Errors);
         return new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal, walkResult.ArrayBuffer);
     }
 
@@ -196,6 +197,65 @@ public class JsonContractSchema
             return null;
         }
 
+        EnrichErrors(ref walkResult.Errors);
         return new ParseResult(walkResult.Table, walkResult.Errors, _nameToOrdinal, walkResult.ArrayBuffer);
+    }
+
+    // ── Post-validation error enrichment ──────────────────────────────
+
+    /// <summary>
+    /// Walks collected errors and replaces any whose schema node carries an <c>x-error</c> extension
+    /// with enriched versions containing the custom error metadata.
+    /// </summary>
+    private void EnrichErrors(ref ErrorCollector errors)
+    {
+        if (!errors.HasErrors)
+            return;
+
+        for (int i = 0; i < errors.Count; i++)
+        {
+            var error = errors[i];
+            var node = ResolveNodeByPath(error.Path);
+            if (node?.ErrorInfo is { } info)
+            {
+                errors.Replace(i, new ValidationError(
+                    error.Path,
+                    error.Code,
+                    info.Detail ?? error.Message,
+                    info));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resolves a schema node by its RFC 6901 JSON Pointer path by walking the schema tree.
+    /// Returns <c>null</c> if the path doesn't match a known node.
+    /// </summary>
+    private SchemaNode? ResolveNodeByPath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return _root;
+
+        var current = _root;
+
+        // Split path into segments: "/foo/bar" → ["foo", "bar"]
+        var segments = path.Split('/');
+
+        // First segment is empty (before the leading /)
+        for (int i = 1; i < segments.Length; i++)
+        {
+            if (current.Properties is null)
+                return null;
+
+            // Unescape RFC 6901: ~1 → /, ~0 → ~
+            var segment = segments[i].Replace("~1", "/").Replace("~0", "~");
+
+            if (!current.Properties.TryGetValue(segment, out var child))
+                return null;
+
+            current = child;
+        }
+
+        return current;
     }
 }

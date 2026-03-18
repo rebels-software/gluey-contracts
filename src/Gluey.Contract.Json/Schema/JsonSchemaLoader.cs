@@ -111,6 +111,7 @@ internal static class JsonSchemaLoader
         string? description = null;
         string? format = null;
         bool? deprecated = null;
+        SchemaErrorInfo? errorInfo = null;
 
         while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
         {
@@ -345,6 +346,11 @@ internal static class JsonSchemaLoader
                 reader.Read();
                 deprecated = reader.GetBoolean();
             }
+            else if (reader.ValueTextEquals("x-error"u8))
+            {
+                reader.Read();
+                errorInfo = ReadErrorInfo(ref reader);
+            }
             else
             {
                 // Unknown keyword -- skip the value
@@ -435,7 +441,8 @@ internal static class JsonSchemaLoader
             title: title,
             description: description,
             format: format,
-            deprecated: deprecated);
+            deprecated: deprecated,
+            errorInfo: errorInfo);
     }
 
     // ── Typed reader helpers ──────────────────────────────────────────
@@ -600,6 +607,56 @@ internal static class JsonSchemaLoader
 
         writer.Flush();
         return buffer.WrittenSpan.ToArray();
+    }
+
+    /// <summary>Reads the "x-error" extension object: { "code": "...", "title": "...", "detail": "...", "type": "..." }.</summary>
+    private static SchemaErrorInfo? ReadErrorInfo(ref Utf8JsonReader reader)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            reader.Skip();
+            return null;
+        }
+
+        string? code = null;
+        string? title = null;
+        string? detail = null;
+        string? type = null;
+
+        while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
+        {
+            if (reader.ValueTextEquals("code"u8))
+            {
+                reader.Read();
+                code = reader.GetString();
+            }
+            else if (reader.ValueTextEquals("title"u8))
+            {
+                reader.Read();
+                title = reader.GetString();
+            }
+            else if (reader.ValueTextEquals("detail"u8))
+            {
+                reader.Read();
+                detail = reader.GetString();
+            }
+            else if (reader.ValueTextEquals("type"u8))
+            {
+                reader.Read();
+                type = reader.GetString();
+            }
+            else
+            {
+                // Unknown x-error field -- skip
+                reader.Read();
+                reader.Skip();
+            }
+        }
+
+        if (code is null && title is null && detail is null && type is null)
+            return null;
+
+        return new SchemaErrorInfo(code, title, detail, type);
     }
 
     /// <summary>Writes a complex JSON value (object or array) recursively.</summary>

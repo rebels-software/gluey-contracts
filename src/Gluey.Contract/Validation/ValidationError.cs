@@ -29,6 +29,11 @@ public readonly struct ValidationError
     public readonly string Message;
 
     /// <summary>
+    /// Custom error metadata from the <c>x-error</c> JSON Schema extension, or <c>null</c> if not specified.
+    /// </summary>
+    public readonly SchemaErrorInfo? ErrorInfo;
+
+    /// <summary>
     /// Creates a new <see cref="ValidationError"/>.
     /// </summary>
     /// <param name="path">RFC 6901 JSON Pointer path to the failing property.</param>
@@ -39,5 +44,17 @@ public readonly struct ValidationError
         Path = path;
         Code = code;
         Message = message;
+        ErrorInfo = null;
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ValidationError"/> with custom error metadata from <c>x-error</c>.
+    /// </summary>
+    internal ValidationError(string path, ValidationErrorCode code, string message, SchemaErrorInfo? errorInfo)
+    {
+        Path = path;
+        Code = code;
+        Message = message;
+        ErrorInfo = errorInfo;
     }
 }

@@ -107,7 +107,7 @@ if (result is { } parsed)
 
 No objects were allocated. `ParsedProperty` is a `readonly struct` holding an offset and length into the original byte buffer. Values are materialized only when you call `GetString()`, `GetInt32()`, etc. `using` returns pooled buffers automatically.
 
-### 4. Validation errors with [RFC 6901](https://datatracker.ietf.org/doc/html/rfc6901) JSON Pointer paths
+### 4. Validation errors with [RFC 6901](https://datatracker.ietf.org/doc/html/rfc6901) JSON Pointer paths (example API response)
 
 ```json
 {
@@ -121,6 +121,66 @@ No objects were allocated. `ParsedProperty` is a `readonly struct` holding an of
   ]
 }
 ```
+
+### 3. Custom error messages with `x-error`
+
+Enrich validation errors with domain-specific codes and messages using the `x-error` JSON Schema extension:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "quantity": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 6,
+      "x-error": {
+        "code": "INVALID_QUANTITY",
+        "title": "Invalid quantity",
+        "detail": "Must be a whole number between 1 and 6",
+        "type": "https://api.example.com/errors/invalid-quantity"
+      }
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "x-error": {
+        "code": "INVALID_EMAIL",
+        "detail": "Please provide a valid email address"
+      }
+    }
+  },
+  "required": ["quantity", "email"]
+}
+```
+
+Any validation failure on a property with `x-error` will carry the custom metadata:
+
+```csharp
+using var result = schema.Parse(requestBytes);
+
+if (result is { } parsed && !parsed.IsValid)
+{
+    foreach (var error in parsed.Errors)
+    {
+        // error.Path          → "/quantity"
+        // error.Code          → ValidationErrorCode.MaximumExceeded
+        // error.Message       → "Must be a whole number between 1 and 6"  (from x-error.detail)
+        // error.ErrorInfo     → SchemaErrorInfo { Code: "INVALID_QUANTITY", Title: "Invalid quantity", ... }
+    }
+}
+```
+
+`x-error` is per-property — any constraint violation on that property (wrong type, out of range, too short, etc.) gets the same custom error. The schema author doesn't need to know which internal validation keyword failed.
+
+All `x-error` fields are optional. Omitted fields fall through to library defaults. When `detail` is specified, it replaces the default `Message`. The original `ValidationErrorCode` is always preserved.
+
+| Field | Maps to | Purpose |
+|-------|---------|---------|
+| `code` | `SchemaErrorInfo.Code` | Machine-readable domain error code |
+| `title` | `SchemaErrorInfo.Title` | Short summary |
+| `detail` | `SchemaErrorInfo.Detail` / `ValidationError.Message` | Detailed explanation (replaces default message) |
+| `type` | `SchemaErrorInfo.Type` | URI identifying the error type (RFC 7807) |
 
 ## Benchmarks
 
