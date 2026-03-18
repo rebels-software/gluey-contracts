@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Gluey.Contract;
+namespace Gluey.Contract.Json;
 
 /// <summary>
 /// Configuration options that control schema validation behavior.

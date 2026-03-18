@@ -14,7 +14,9 @@
 
 using System.Text.RegularExpressions;
 
-namespace Gluey.Contract;
+using Gluey.Contract;
+
+namespace Gluey.Contract.Json;
 
 /// <summary>
 /// Immutable tree node representing a compiled JSON Schema (Draft 2020-12).
