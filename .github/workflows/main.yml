@@ -15,6 +15,9 @@ jobs:
     uses: rebels-software/github-actions/.github/workflows/build-and-test.yaml@v1.1.0
     with:
       csproj-path: src/Gluey.Contract/Gluey.Contract.csproj
+      dotnet-version: |
+        9.0.x
+        10.0.x
     secrets:
       CODE_COV_TOKEN: ${{ secrets.CODE_COV_TOKEN }}
 
@@ -40,6 +43,9 @@ jobs:
     uses: rebels-software/github-actions/.github/workflows/publish-nuget.yaml@v1.1.0
     with:
       csproj-path: src/Gluey.Contract/Gluey.Contract.csproj
+      dotnet-version: |
+        9.0.x
+        10.0.x
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
@@ -49,5 +55,8 @@ jobs:
     uses: rebels-software/github-actions/.github/workflows/publish-nuget.yaml@v1.1.0
     with:
       csproj-path: src/Gluey.Contract.Json/Gluey.Contract.Json.csproj
+      dotnet-version: |
+        9.0.x
+        10.0.x
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
