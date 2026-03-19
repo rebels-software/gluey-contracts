@@ -32,6 +32,8 @@
     <InternalsVisibleTo Include="Gluey.Contract.Tests" />
     <InternalsVisibleTo Include="Gluey.Contract.Json" />
     <InternalsVisibleTo Include="Gluey.Contract.Json.Tests" />
+    <InternalsVisibleTo Include="Gluey.Contract.Binary" />
+    <InternalsVisibleTo Include="Gluey.Contract.Binary.Tests" />
   </ItemGroup>
 
   <ItemGroup>

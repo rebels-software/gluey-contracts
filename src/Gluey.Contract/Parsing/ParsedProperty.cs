@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Buffers.Binary;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -36,6 +37,8 @@ public readonly struct ParsedProperty
     private readonly Dictionary<string, ParsedProperty>? _directChildren;
     private readonly ArrayBuffer? _arrayBuffer;
     private readonly int _arrayOrdinal;
+    private readonly byte _format;      // 0 = UTF-8/JSON (default), 1 = Binary
+    private readonly byte _endianness;   // 0 = little-endian, 1 = big-endian (only meaningful when _format == 1)
 
     /// <summary>
     /// Creates a new <see cref="ParsedProperty"/> pointing into the given byte buffer.
@@ -56,6 +59,8 @@ public readonly struct ParsedProperty
         _directChildren = null;
         _arrayBuffer = null;
         _arrayOrdinal = -1;
+        _format = 0;
+        _endianness = 0;
     }
 
     /// <summary>
@@ -83,6 +88,8 @@ public readonly struct ParsedProperty
         _directChildren = null;
         _arrayBuffer = arrayBuffer;
         _arrayOrdinal = arrayOrdinal;
+        _format = 0;
+        _endianness = 0;
     }
 
     /// <summary>
@@ -101,6 +108,46 @@ public readonly struct ParsedProperty
         _directChildren = directChildren;
         _arrayBuffer = null;
         _arrayOrdinal = -1;
+        _format = 0;
+        _endianness = 0;
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParsedProperty"/> for binary format leaf/scalar properties.
+    /// </summary>
+    internal ParsedProperty(byte[] buffer, int offset, int length, string path, byte format, byte endianness)
+    {
+        _buffer = buffer;
+        _offset = offset;
+        _length = length;
+        _path = path;
+        _childTable = default;
+        _childOrdinals = null;
+        _directChildren = null;
+        _arrayBuffer = null;
+        _arrayOrdinal = -1;
+        _format = format;
+        _endianness = endianness;
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParsedProperty"/> for binary format properties with child navigation.
+    /// </summary>
+    internal ParsedProperty(byte[] buffer, int offset, int length, string path, byte format, byte endianness,
+        OffsetTable childTable, Dictionary<string, int>? childOrdinals,
+        ArrayBuffer? arrayBuffer, int arrayOrdinal)
+    {
+        _buffer = buffer;
+        _offset = offset;
+        _length = length;
+        _path = path;
+        _childTable = childTable;
+        _childOrdinals = childOrdinals;
+        _directChildren = null;
+        _arrayBuffer = arrayBuffer;
+        _arrayOrdinal = arrayOrdinal;
+        _format = format;
+        _endianness = endianness;
     }
 
     /// <summary>The RFC 6901 JSON Pointer path for this property.</summary>
@@ -166,6 +213,9 @@ public readonly struct ParsedProperty
     public string GetString()
     {
         if (_length == 0) return string.Empty;
+        if (_format == 0)
+            return Encoding.UTF8.GetString(_buffer, _offset, _length);
+        // Binary path: UTF-8 decode (encoding-specific logic deferred to Phase 4)
         return Encoding.UTF8.GetString(_buffer, _offset, _length);
     }
 
@@ -177,8 +227,29 @@ public readonly struct ParsedProperty
     public int GetInt32()
     {
         if (_length == 0) return default;
-        Utf8Parser.TryParse(_buffer.AsSpan(_offset, _length), out int value, out _);
-        return value;
+        if (_format == 0)
+        {
+            Utf8Parser.TryParse(_buffer.AsSpan(_offset, _length), out int value, out _);
+            return value;
+        }
+        var span = _buffer.AsSpan(_offset, _length);
+        if (_endianness == 0)
+        {
+            return _length switch
+            {
+                1 => (sbyte)span[0],
+                2 => BinaryPrimitives.ReadInt16LittleEndian(span),
+                4 => BinaryPrimitives.ReadInt32LittleEndian(span),
+                _ => throw new InvalidOperationException($"Cannot read Int32 from {_length} bytes at path '{_path}'")
+            };
+        }
+        return _length switch
+        {
+            1 => (sbyte)span[0],
+            2 => BinaryPrimitives.ReadInt16BigEndian(span),
+            4 => BinaryPrimitives.ReadInt32BigEndian(span),
+            _ => throw new InvalidOperationException($"Cannot read Int32 from {_length} bytes at path '{_path}'")
+        };
     }
 
     /// <summary>
@@ -189,8 +260,31 @@ public readonly struct ParsedProperty
     public long GetInt64()
     {
         if (_length == 0) return default;
-        Utf8Parser.TryParse(_buffer.AsSpan(_offset, _length), out long value, out _);
-        return value;
+        if (_format == 0)
+        {
+            Utf8Parser.TryParse(_buffer.AsSpan(_offset, _length), out long value, out _);
+            return value;
+        }
+        var span = _buffer.AsSpan(_offset, _length);
+        if (_endianness == 0)
+        {
+            return _length switch
+            {
+                1 => (sbyte)span[0],
+                2 => BinaryPrimitives.ReadInt16LittleEndian(span),
+                4 => BinaryPrimitives.ReadInt32LittleEndian(span),
+                8 => BinaryPrimitives.ReadInt64LittleEndian(span),
+                _ => throw new InvalidOperationException($"Cannot read Int64 from {_length} bytes at path '{_path}'")
+            };
+        }
+        return _length switch
+        {
+            1 => (sbyte)span[0],
+            2 => BinaryPrimitives.ReadInt16BigEndian(span),
+            4 => BinaryPrimitives.ReadInt32BigEndian(span),
+            8 => BinaryPrimitives.ReadInt64BigEndian(span),
+            _ => throw new InvalidOperationException($"Cannot read Int64 from {_length} bytes at path '{_path}'")
+        };
     }
 
     /// <summary>
@@ -201,8 +295,27 @@ public readonly struct ParsedProperty
     public double GetDouble()
     {
         if (_length == 0) return default;
-        Utf8Parser.TryParse(_buffer.AsSpan(_offset, _length), out double value, out _);
-        return value;
+        if (_format == 0)
+        {
+            Utf8Parser.TryParse(_buffer.AsSpan(_offset, _length), out double value, out _);
+            return value;
+        }
+        var span = _buffer.AsSpan(_offset, _length);
+        if (_endianness == 0)
+        {
+            return _length switch
+            {
+                4 => BinaryPrimitives.ReadSingleLittleEndian(span),
+                8 => BinaryPrimitives.ReadDoubleLittleEndian(span),
+                _ => throw new InvalidOperationException($"Cannot read Double from {_length} bytes at path '{_path}'")
+            };
+        }
+        return _length switch
+        {
+            4 => BinaryPrimitives.ReadSingleBigEndian(span),
+            8 => BinaryPrimitives.ReadDoubleBigEndian(span),
+            _ => throw new InvalidOperationException($"Cannot read Double from {_length} bytes at path '{_path}'")
+        };
     }
 
     /// <summary>
@@ -214,7 +327,9 @@ public readonly struct ParsedProperty
     public bool GetBoolean()
     {
         if (_length == 0) return default;
-        return _length == 4 && _buffer[_offset] == (byte)'t';
+        if (_format == 0)
+            return _length == 4 && _buffer[_offset] == (byte)'t';
+        return _buffer[_offset] != 0;
     }
 
     /// <summary>
@@ -225,8 +340,12 @@ public readonly struct ParsedProperty
     public decimal GetDecimal()
     {
         if (_length == 0) return default;
-        Utf8Parser.TryParse(_buffer.AsSpan(_offset, _length), out decimal value, out _);
-        return value;
+        if (_format == 0)
+        {
+            Utf8Parser.TryParse(_buffer.AsSpan(_offset, _length), out decimal value, out _);
+            return value;
+        }
+        throw new NotSupportedException($"Binary format does not support decimal type at path '{_path}'");
     }
 
     /// <summary>
