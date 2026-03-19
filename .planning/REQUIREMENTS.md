@@ -94,8 +94,8 @@
 
 | Feature | Reason |
 |---------|--------|
-| Serialization (object → byte[]) | Parse-only for v1; serialization needs different contract semantics |
-| Fully dynamic arrays | No count or terminator — impossible to parse reliably |
+| Serialization (object -> byte[]) | Parse-only for v1; serialization needs different contract semantics |
+| Fully dynamic arrays | No count or terminator -- impossible to parse reliably |
 | Stream-based incremental parsing | Scope trap; byte[] input is sufficient for IoT payloads |
 | Protobuf/MessagePack compatibility | This is for custom binary formats, not standard protocols |
 | Schema generation from DSL | Belongs in Gluey compiler, not runtime library |
@@ -105,55 +105,55 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | — | Pending |
-| CORE-02 | — | Pending |
-| CORE-03 | — | Pending |
-| CORE-04 | — | Pending |
-| CORE-05 | — | Pending |
-| CNTR-01 | — | Pending |
-| CNTR-02 | — | Pending |
-| CNTR-03 | — | Pending |
-| CNTR-04 | — | Pending |
-| CNTR-05 | — | Pending |
-| CNTR-06 | — | Pending |
-| CNTR-07 | — | Pending |
-| CNTR-08 | — | Pending |
-| CNTR-09 | — | Pending |
-| SCLR-01 | — | Pending |
-| SCLR-02 | — | Pending |
-| SCLR-03 | — | Pending |
-| SCLR-04 | — | Pending |
-| SCLR-05 | — | Pending |
-| SCLR-06 | — | Pending |
-| STRE-01 | — | Pending |
-| STRE-02 | — | Pending |
-| STRE-03 | — | Pending |
-| STRE-04 | — | Pending |
-| BITS-01 | — | Pending |
-| BITS-02 | — | Pending |
-| BITS-03 | — | Pending |
-| BITS-04 | — | Pending |
-| COMP-01 | — | Pending |
-| COMP-02 | — | Pending |
-| COMP-03 | — | Pending |
-| COMP-04 | — | Pending |
-| COMP-05 | — | Pending |
-| VALD-01 | — | Pending |
-| VALD-02 | — | Pending |
-| VALD-03 | — | Pending |
-| VALD-04 | — | Pending |
-| VALD-05 | — | Pending |
-| PACK-01 | — | Pending |
-| PACK-02 | — | Pending |
-| PACK-03 | — | Pending |
-| PACK-04 | — | Pending |
-| PACK-05 | — | Pending |
+| CORE-01 | Phase 1 | Pending |
+| CORE-02 | Phase 1 | Pending |
+| CORE-03 | Phase 2 | Pending |
+| CORE-04 | Phase 3 | Pending |
+| CORE-05 | Phase 3 | Pending |
+| CNTR-01 | Phase 2 | Pending |
+| CNTR-02 | Phase 2 | Pending |
+| CNTR-03 | Phase 2 | Pending |
+| CNTR-04 | Phase 2 | Pending |
+| CNTR-05 | Phase 2 | Pending |
+| CNTR-06 | Phase 2 | Pending |
+| CNTR-07 | Phase 2 | Pending |
+| CNTR-08 | Phase 2 | Pending |
+| CNTR-09 | Phase 2 | Pending |
+| SCLR-01 | Phase 3 | Pending |
+| SCLR-02 | Phase 3 | Pending |
+| SCLR-03 | Phase 3 | Pending |
+| SCLR-04 | Phase 3 | Pending |
+| SCLR-05 | Phase 3 | Pending |
+| SCLR-06 | Phase 3 | Pending |
+| STRE-01 | Phase 4 | Pending |
+| STRE-02 | Phase 4 | Pending |
+| STRE-03 | Phase 4 | Pending |
+| STRE-04 | Phase 4 | Pending |
+| BITS-01 | Phase 4 | Pending |
+| BITS-02 | Phase 4 | Pending |
+| BITS-03 | Phase 4 | Pending |
+| BITS-04 | Phase 4 | Pending |
+| COMP-01 | Phase 5 | Pending |
+| COMP-02 | Phase 5 | Pending |
+| COMP-03 | Phase 5 | Pending |
+| COMP-04 | Phase 4 | Pending |
+| COMP-05 | Phase 5 | Pending |
+| VALD-01 | Phase 6 | Pending |
+| VALD-02 | Phase 6 | Pending |
+| VALD-03 | Phase 6 | Pending |
+| VALD-04 | Phase 6 | Pending |
+| VALD-05 | Phase 6 | Pending |
+| PACK-01 | Phase 7 | Pending |
+| PACK-02 | Phase 7 | Pending |
+| PACK-03 | Phase 7 | Pending |
+| PACK-04 | Phase 7 | Pending |
+| PACK-05 | Phase 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 43 total
-- Mapped to phases: 0
-- Unmapped: 43 ⚠️
+- Mapped to phases: 43
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 after initial definition*
+*Last updated: 2026-03-19 after roadmap creation*
