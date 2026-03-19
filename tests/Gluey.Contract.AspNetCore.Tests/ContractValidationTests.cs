@@ -918,6 +918,37 @@ public class ContractValidationTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*[Contract]*");
     }
+
+    // ── GetContractBody re-parse returns null (line 39-40) ───────────────
+
+    [Test]
+    public void GetContractBody_ReParseReturnsNull_Throws()
+    {
+        var schema = JsonContractSchema.Load(OrderSchema)!;
+        var context = new DefaultHttpContext();
+        // Simulate filter having stored invalid bytes that Parse returns null for
+        context.Items["Contract:Body"] = new byte[] { 0xFF, 0xFE };
+        context.Items["Contract:Schema"] = schema;
+
+        var act = () => context.GetContractBody();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*re-parse*null*");
+    }
+
+    // ── GetContractResult re-parse returns null (line 67-68) ─────────────
+
+    [Test]
+    public void GetContractResult_ReParseReturnsNull_Throws()
+    {
+        var schema = JsonContractSchema.Load(OrderSchema)!;
+        var context = new DefaultHttpContext();
+        context.Items["Contract:Body"] = new byte[] { 0xFF, 0xFE };
+        context.Items["Contract:Schema"] = schema;
+
+        var act = () => context.GetContractResult();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*re-parse*null*");
+    }
 }
 
 public class OrderPayload : ContractBody<OrderPayload>
