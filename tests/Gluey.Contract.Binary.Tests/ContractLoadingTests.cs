@@ -523,4 +523,184 @@ internal sealed class ContractLoadingTests
         var timestamp = recentErrors.ArrayElement!.StructFields!.First(f => f.Name == "timestamp");
         timestamp.Endianness.Should().Be("big");
     }
+
+    // ================================================================
+    // BinaryContractSchema API tests (Plan 03)
+    // ================================================================
+
+    // -- TryLoad (string) --
+
+    [Test]
+    public void TryLoad_ValidBatteryContract_ReturnsTrueWithSchema()
+    {
+        // Act
+        var result = BinaryContractSchema.TryLoad(BatteryContractJson, out var schema);
+
+        // Assert
+        result.Should().BeTrue();
+        schema.Should().NotBeNull();
+    }
+
+    [Test]
+    public void TryLoad_InvalidJson_ReturnsFalseWithNullSchema()
+    {
+        // Act
+        var result = BinaryContractSchema.TryLoad("{ not valid }", out var schema);
+
+        // Assert
+        result.Should().BeFalse();
+        schema.Should().BeNull();
+    }
+
+    [Test]
+    public void TryLoad_WrongKind_ReturnsFalse()
+    {
+        // Arrange
+        const string json = """{ "kind": "json-schema", "fields": {} }""";
+
+        // Act
+        var result = BinaryContractSchema.TryLoad(json, out var schema);
+
+        // Assert
+        result.Should().BeFalse();
+        schema.Should().BeNull();
+    }
+
+    [Test]
+    public void TryLoad_ContractWithCycle_ReturnsFalse()
+    {
+        // Arrange: A depends on B, B depends on A
+        const string json = """
+            {
+              "kind": "binary",
+              "fields": {
+                "a": { "type": "uint8", "size": 1, "dependsOn": "b" },
+                "b": { "type": "uint8", "size": 1, "dependsOn": "a" }
+              }
+            }
+            """;
+
+        // Act
+        var result = BinaryContractSchema.TryLoad(json, out var schema);
+
+        // Assert
+        result.Should().BeFalse();
+        schema.Should().BeNull();
+    }
+
+    // -- Load (string) --
+
+    [Test]
+    public void Load_ValidBatteryContract_ReturnsNonNull()
+    {
+        // Act
+        var schema = BinaryContractSchema.Load(BatteryContractJson);
+
+        // Assert
+        schema.Should().NotBeNull();
+    }
+
+    [Test]
+    public void Load_InvalidJson_ReturnsNull()
+    {
+        // Act
+        var schema = BinaryContractSchema.Load("{ bad json }");
+
+        // Assert
+        schema.Should().BeNull();
+    }
+
+    // -- TryLoad (ReadOnlySpan<byte>) --
+
+    [Test]
+    public void TryLoad_Utf8Bytes_WorksWithSpanOverload()
+    {
+        // Arrange
+        var bytes = Encoding.UTF8.GetBytes(BatteryContractJson);
+
+        // Act
+        var result = BinaryContractSchema.TryLoad((ReadOnlySpan<byte>)bytes, out var schema);
+
+        // Assert
+        result.Should().BeTrue();
+        schema.Should().NotBeNull();
+    }
+
+    // -- Metadata properties --
+
+    [Test]
+    public void Schema_Id_MatchesContractIdField()
+    {
+        var schema = BinaryContractSchema.Load(BatteryContractJson)!;
+        schema.Id.Should().Be("dunamis/battery/stateUpdate");
+    }
+
+    [Test]
+    public void Schema_Name_MatchesContractNameField()
+    {
+        var schema = BinaryContractSchema.Load(BatteryContractJson)!;
+        schema.Name.Should().Be("stateUpdate");
+    }
+
+    [Test]
+    public void Schema_Version_MatchesContractVersionField()
+    {
+        var schema = BinaryContractSchema.Load(BatteryContractJson)!;
+        schema.Version.Should().Be("0.0.1");
+    }
+
+    [Test]
+    public void Schema_DisplayName_MatchesContractDisplayNameDictionary()
+    {
+        var schema = BinaryContractSchema.Load(BatteryContractJson)!;
+        schema.DisplayName.Should().NotBeNull();
+        schema.DisplayName.Should().ContainKey("en-US");
+        schema.DisplayName.Should().ContainKey("pl");
+    }
+
+    // -- OrderedFields --
+
+    [Test]
+    public void Schema_OrderedFields_HasCorrectLength()
+    {
+        var schema = BinaryContractSchema.Load(BatteryContractJson)!;
+        schema.OrderedFields.Should().HaveCount(10);
+    }
+
+    [Test]
+    public void Schema_OrderedFields_FirstIsRootField()
+    {
+        var schema = BinaryContractSchema.Load(BatteryContractJson)!;
+        schema.OrderedFields[0].Name.Should().Be("recordedAgo");
+    }
+
+    // -- TotalFixedSize --
+
+    [Test]
+    public void Schema_TotalFixedSize_IsMinusOneForContractWithDynamicFields()
+    {
+        // Battery contract has semi-dynamic recentErrors array
+        var schema = BinaryContractSchema.Load(BatteryContractJson)!;
+        schema.TotalFixedSize.Should().Be(-1);
+    }
+
+    [Test]
+    public void Schema_TotalFixedSize_EqualsFieldSizeSumForFullyFixedContract()
+    {
+        // Arrange: a fully fixed contract
+        const string json = """
+            {
+              "kind": "binary",
+              "endianness": "little",
+              "fields": {
+                "a": { "type": "uint16", "size": 2 },
+                "b": { "dependsOn": "a", "type": "uint8", "size": 1 },
+                "c": { "dependsOn": "b", "type": "uint32", "size": 4 }
+              }
+            }
+            """;
+
+        var schema = BinaryContractSchema.Load(json)!;
+        schema.TotalFixedSize.Should().Be(7); // 2 + 1 + 4
+    }
 }
