@@ -85,6 +85,12 @@ public class ContractValidationTests
             return Results.Ok(new { accepted = true, name });
         }).WithContractValidation(schema);
 
+        app.MapPost("/orders-param", [Contract("order")] (ContractBody body) =>
+        {
+            var name = body["name"].GetString();
+            return Results.Ok(new { accepted = true, name });
+        }).WithContract();
+
         app.Start();
         return app.GetTestClient();
     }
@@ -313,5 +319,59 @@ public class ContractValidationTests
             new StringContent("""{"name":"Widget","quantity":200}""", Encoding.UTF8, "application/json"));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    // ── ContractBody as parameter with [Contract] attribute ──────────────
+
+    [Test]
+    public async Task ContractBody_WithAttribute_ValidRequest()
+    {
+        using var client = CreateClient();
+        var response = await client.PostAsync("/orders-param",
+            new StringContent("""{"name":"Widget","quantity":5}""", Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("accepted").GetBoolean().Should().BeTrue();
+        body.GetProperty("name").GetString().Should().Be("Widget");
+    }
+
+    [Test]
+    public async Task ContractBody_WithAttribute_InvalidRequest_Returns400()
+    {
+        using var client = CreateClient();
+        var response = await client.PostAsync("/orders-param",
+            new StringContent("""{"name":"Widget","quantity":200}""", Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("title").GetString().Should().Be("Validation failed");
+        body.GetProperty("errors").GetArrayLength().Should().BeGreaterThan(0);
+    }
+
+    [Test]
+    public async Task ContractBody_WithAttribute_EmptyBody_Returns400()
+    {
+        using var client = CreateClient();
+        var response = await client.PostAsync("/orders-param",
+            new StringContent("", Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Test]
+    public async Task ContractBody_WithAttribute_XErrorEnriched()
+    {
+        using var client = CreateClient();
+        var response = await client.PostAsync("/orders-param",
+            new StringContent("""{"name":"Widget","quantity":200}""", Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var error = body.GetProperty("errors")[0];
+        error.GetProperty("code").GetString().Should().Be("INVALID_QUANTITY");
     }
 }

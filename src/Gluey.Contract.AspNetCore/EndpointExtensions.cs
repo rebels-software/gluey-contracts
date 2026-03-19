@@ -52,6 +52,18 @@ public static class EndpointExtensions
     }
 
     /// <summary>
+    /// Adds the validation filter for endpoints using <see cref="ContractBody"/> parameter binding
+    /// with <c>[Contract]</c> attribute. Call this once after mapping endpoints.
+    /// Not needed when using <see cref="WithContractValidation{TBuilder}(TBuilder, IContractSchema)"/>.
+    /// </summary>
+    public static TBuilder WithContract<TBuilder>(this TBuilder builder)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        builder.AddEndpointFilter(new ContractBodyValidationFilter());
+        return builder;
+    }
+
+    /// <summary>
     /// Adds a per-endpoint error transformer that overrides the global <see cref="ContractOptions.TransformError"/>.
     /// </summary>
     /// <param name="builder">The endpoint convention builder.</param>

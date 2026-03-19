@@ -12,32 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Reflection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Gluey.Contract.AspNetCore;
 
 /// <summary>
-/// Bindable wrapper over <see cref="ParseResult"/> for ASP.NET Core minimal APIs.
-/// Resolved via <see cref="HttpContextExtensions.GetContractBody"/>, auto-disposed
-/// at the end of the request.
+/// Bindable parsed request body for ASP.NET Core minimal APIs.
+/// Reads, validates, and short-circuits with RFC 7807 on failure — all during parameter binding.
+/// Auto-disposed at the end of the request.
 ///
-/// <para>Usage:</para>
+/// <para>Usage with <c>[Contract]</c> attribute:</para>
 /// <code>
-/// app.MapPost("/orders", (HttpContext ctx) =>
+/// app.MapPost("/orders", [Contract("order")] (ContractBody body) =>
 /// {
-///     var body = ctx.GetContractBody();
 ///     var name = body["name"].GetString();
 ///     return Results.Ok(new { name });
-/// }).WithContractValidation(schema);
+/// });
 /// </code>
 /// </summary>
 public sealed class ContractBody : IDisposable
 {
     private ParseResult _result;
+    private object? _validationFailure;
 
     internal ContractBody(ParseResult result)
     {
         _result = result;
+    }
+
+    private ContractBody(object validationFailure)
+    {
+        _validationFailure = validationFailure;
     }
 
     /// <summary>
@@ -51,7 +58,7 @@ public sealed class ContractBody : IDisposable
     public ParsedProperty this[int ordinal] => _result[ordinal];
 
     /// <summary>Whether the parsed data passed all schema validations.</summary>
-    public bool IsValid => _result.IsValid;
+    public bool IsValid => _validationFailure is null && !_result.Errors.HasErrors;
 
     /// <summary>The collected validation errors (empty when valid).</summary>
     public ErrorCollector Errors => _result.Errors;
@@ -68,5 +75,139 @@ public sealed class ContractBody : IDisposable
     public void Dispose()
     {
         _result.Dispose();
+    }
+
+    /// <summary>
+    /// Gets the validation failure response, or <c>null</c> if validation passed.
+    /// Used by <see cref="ContractBodyValidationFilter"/> to short-circuit.
+    /// </summary>
+    internal object? ValidationFailure => _validationFailure;
+
+    /// <summary>
+    /// Binds a <see cref="ContractBody"/> from the HTTP request.
+    /// Reads the body, resolves the schema from <c>[Contract]</c> attribute + <see cref="ContractSchemaRegistry"/>,
+    /// validates, and stores failure for the filter to short-circuit.
+    /// </summary>
+    public static async ValueTask<ContractBody?> BindAsync(HttpContext context, ParameterInfo parameter)
+    {
+        // If the filter already validated, reuse stored data
+        if (context.Items.TryGetValue("Contract:Body", out var cachedBody) && cachedBody is byte[] cachedBytes
+            && context.Items.TryGetValue("Contract:Schema", out var cachedSchema) && cachedSchema is IContractSchema cached)
+        {
+            var cachedResult = cached.Parse(cachedBytes);
+            if (cachedResult is { } parsed)
+            {
+                var body = new ContractBody(parsed);
+                context.Response.RegisterForDispose(body);
+                return body;
+            }
+        }
+
+        // Resolve schema from [Contract] attribute
+        var schema = ResolveSchema(context, parameter);
+        if (schema is null)
+        {
+            throw new InvalidOperationException(
+                "No [Contract] attribute found and no schema provided via WithContractValidation(). " +
+                "Add [Contract(\"schemaName\")] to your endpoint or use .WithContractValidation(schema).");
+        }
+
+        // Read the body
+        var bytes = await ReadBodyAsync(context.Request);
+
+        // Parse and validate
+        var result = schema.Parse(bytes);
+
+        if (result is null)
+        {
+            var failure = new ContractBody(new ContractProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+                Title = "Validation failed",
+                Status = StatusCodes.Status400BadRequest,
+                Errors = [new ContractValidationError
+                {
+                    Path = "",
+                    Code = "InvalidData",
+                    Message = "Request body is empty or structurally invalid."
+                }]
+            });
+            context.Response.RegisterForDispose(failure);
+            return failure;
+        }
+
+        if (!result.Value.IsValid)
+        {
+            var options = context.RequestServices.GetService<ContractOptions>();
+
+            if (options?.OnValidationFailed is { } handler)
+            {
+                // Store the handler + errors for the filter to execute
+                var failure = new ContractBody(new DeferredValidationFailure(handler, result.Value.Errors));
+                context.Response.RegisterForDispose(failure);
+                return failure;
+            }
+
+            var problemDetails = ProblemDetailsMapper.Build(result.Value.Errors, context, options);
+            result.Value.Dispose();
+            var failureBody = new ContractBody(problemDetails);
+            context.Response.RegisterForDispose(failureBody);
+            return failureBody;
+        }
+
+        var contractBody = new ContractBody(result.Value);
+        context.Response.RegisterForDispose(contractBody);
+        return contractBody;
+    }
+
+    private static IContractSchema? ResolveSchema(HttpContext context, ParameterInfo parameter)
+    {
+        // Check [Contract] attribute on the method
+        var contractAttr = parameter.Member.GetCustomAttribute<ContractAttribute>()
+            ?? parameter.Member.DeclaringType?.GetCustomAttribute<ContractAttribute>();
+
+        if (contractAttr is not null)
+        {
+            var registry = context.RequestServices.GetService<ContractSchemaRegistry>();
+            if (registry is not null && registry.TryGet(contractAttr.SchemaName, out var schema))
+                return schema;
+        }
+
+        return null;
+    }
+
+    private static async Task<byte[]> ReadBodyAsync(HttpRequest request)
+    {
+        if (request.ContentLength is > 0)
+        {
+            var body = new byte[(int)request.ContentLength.Value];
+            var totalRead = 0;
+            while (totalRead < body.Length)
+            {
+                var read = await request.Body.ReadAsync(body.AsMemory(totalRead));
+                if (read == 0) break;
+                totalRead += read;
+            }
+            return body;
+        }
+
+        using var ms = new MemoryStream();
+        await request.Body.CopyToAsync(ms);
+        return ms.ToArray();
+    }
+}
+
+/// <summary>
+/// Deferred validation failure — stores the handler and errors for the filter to execute.
+/// </summary>
+internal sealed class DeferredValidationFailure
+{
+    internal Func<ErrorCollector, HttpContext, Task> Handler { get; }
+    internal ErrorCollector Errors { get; }
+
+    internal DeferredValidationFailure(Func<ErrorCollector, HttpContext, Task> handler, ErrorCollector errors)
+    {
+        Handler = handler;
+        Errors = errors;
     }
 }

@@ -44,19 +44,31 @@ builder.Services.AddGlueyContracts(registry =>
 
 ### 2. Add validation to endpoints
 
+**Option A: `ContractBody` as parameter** (recommended)
+
 ```csharp
-app.MapPost("/orders", (HttpContext ctx) =>
+app.MapPost("/orders", [Contract("create-order")] (ContractBody body) =>
 {
-    var body = ctx.GetContractBody();  // auto-disposed at end of request
     var name = body["name"].GetString();
     var qty = body["quantity"].GetInt32();
     return Results.Ok(new { name, qty });
+}).WithContract();
+```
+
+`ContractBody` reads, validates, and short-circuits with 400 automatically. Auto-disposed at the end of the request — no `using` needed.
+
+**Option B: Filter-based with `HttpContext`**
+
+```csharp
+app.MapPost("/orders", (HttpContext ctx) =>
+{
+    var body = ctx.GetContractBody();  // auto-disposed
+    var name = body["name"].GetString();
+    return Results.Ok(new { name });
 }).WithContractValidation("create-order");
 ```
 
 Invalid requests are short-circuited with a 400 response before the handler runs.
-
-> **`GetContractBody()`** returns a `ContractBody` that is automatically disposed at the end of the request — no `using` needed. Use `GetContractResult()` if you prefer manual disposal.
 
 ### 3. Automatic RFC 7807 error responses
 
