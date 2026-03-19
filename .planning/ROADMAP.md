@@ -13,7 +13,7 @@ This roadmap delivers a binary protocol parsing package that mirrors the existin
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Format Flag** - Add binary format discriminator to ParsedProperty without breaking JSON consumers
-- [ ] **Phase 2: Contract Model** - Load, validate, and resolve binary contract JSON into an ordered field descriptor array
+- [x] **Phase 2: Contract Model** - Load, validate, and resolve binary contract JSON into an ordered field descriptor array (completed 2026-03-19)
 - [ ] **Phase 3: Scalar Parsing** - First end-to-end parse pipeline reading scalar fields from binary payloads
 - [ ] **Phase 4: Leaf Types** - Strings, enums, bit fields, and padding complete the non-composite field types
 - [ ] **Phase 5: Composite Types** - Arrays and nested structs with path-based access
@@ -132,7 +132,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Format Flag | 0/1 | Planning complete | - |
-| 2. Contract Model | 2/3 | In Progress|  |
+| 2. Contract Model | 3/3 | Complete   | 2026-03-19 |
 | 3. Scalar Parsing | 0/? | Not started | - |
 | 4. Leaf Types | 0/? | Not started | - |
 | 5. Composite Types | 0/? | Not started | - |

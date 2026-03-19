@@ -9,21 +9,21 @@
 
 - [x] **CORE-01**: ParsedProperty has a 1-byte format flag that dispatches GetXxx() between UTF-8 and binary reading
 - [x] **CORE-02**: Adding format flag does not break existing JSON consumers (all JSON tests pass unchanged)
-- [ ] **CORE-03**: BinaryContractSchema exposes TryLoad/Load static factory methods matching JsonContractSchema pattern
+- [x] **CORE-03**: BinaryContractSchema exposes TryLoad/Load static factory methods matching JsonContractSchema pattern
 - [ ] **CORE-04**: BinaryContractSchema.Parse(byte[]) returns ParseResult? (null for structurally invalid payloads)
 - [ ] **CORE-05**: Zero-allocation parse path using ArrayPool, OffsetTable, ErrorCollector, ArrayBuffer
 
 ### Contract Model
 
 - [x] **CNTR-01**: Binary contract JSON loaded and parsed into internal model (BinaryContractNode tree)
-- [ ] **CNTR-02**: Dependency chain resolved at load time into ordered field array (no graph traversal at parse time)
+- [x] **CNTR-02**: Dependency chain resolved at load time into ordered field array (no graph traversal at parse time)
 - [x] **CNTR-03**: Contract-load validation: exactly one root field (no dependsOn)
 - [x] **CNTR-04**: Contract-load validation: no cycles in dependency graph
 - [x] **CNTR-05**: Contract-load validation: each field has at most one child
 - [x] **CNTR-06**: Contract-load validation: semi-dynamic array count references valid numeric field earlier in chain
 - [x] **CNTR-07**: Contract-load validation: bit sub-fields do not overlap and fit within container size
 - [x] **CNTR-08**: Contract-load validation: size is explicitly declared on every field
-- [ ] **CNTR-09**: Endianness resolved at load time (contract-level default with per-field override)
+- [x] **CNTR-09**: Endianness resolved at load time (contract-level default with per-field override)
 
 ### Scalar Parsing
 
@@ -107,18 +107,18 @@
 |-------------|-------|--------|
 | CORE-01 | Phase 1 | Complete |
 | CORE-02 | Phase 1 | Complete |
-| CORE-03 | Phase 2 | Pending |
+| CORE-03 | Phase 2 | Complete |
 | CORE-04 | Phase 3 | Pending |
 | CORE-05 | Phase 3 | Pending |
 | CNTR-01 | Phase 2 | Complete |
-| CNTR-02 | Phase 2 | Pending |
+| CNTR-02 | Phase 2 | Complete |
 | CNTR-03 | Phase 2 | Complete |
 | CNTR-04 | Phase 2 | Complete |
 | CNTR-05 | Phase 2 | Complete |
 | CNTR-06 | Phase 2 | Complete |
 | CNTR-07 | Phase 2 | Complete |
 | CNTR-08 | Phase 2 | Complete |
-| CNTR-09 | Phase 2 | Pending |
+| CNTR-09 | Phase 2 | Complete |
 | SCLR-01 | Phase 3 | Pending |
 | SCLR-02 | Phase 3 | Pending |
 | SCLR-03 | Phase 3 | Pending |
