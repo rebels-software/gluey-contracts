@@ -856,6 +856,68 @@ public class ContractValidationTests
         error.GetProperty("title").GetString().Should().Be("Bad value");
         error.GetProperty("type").GetString().Should().Be("https://example.com/errors/bad-value");
     }
+
+    // ── Cache reuse path (filter stores Items, GetContractBody reads them) ──
+
+    [Test]
+    public async Task GetContractBody_ReusesFilterValidatedData()
+    {
+        // WithContractValidation filter stores body+schema in Items (lines 167-176 in BindAsync,
+        // but actually exercised via GetContractBody which calls the same Items lookup)
+        var schema = JsonContractSchema.Load(OrderSchema)!;
+
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseTestServer();
+        builder.Services.AddGlueyContracts();
+
+        var app = builder.Build();
+        app.MapPost("/test", (HttpContext ctx) =>
+        {
+            // First call reads from Items (cache path)
+            var body1 = ctx.GetContractBody();
+            // Second call also reads from Items
+            var body2 = ctx.GetContractBody();
+            return Results.Ok(new { name = body1["name"].GetString(), name2 = body2["name"].GetString() });
+        }).WithContractValidation(schema);
+        app.Start();
+
+        using var client = app.GetTestClient();
+        var response = await client.PostAsync("/test",
+            new StringContent("""{"name":"Widget","quantity":5}""", Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("name").GetString().Should().Be("Widget");
+        body.GetProperty("name2").GetString().Should().Be("Widget");
+    }
+
+    // ── No [Contract] attribute and no filter → throws ───────────────────
+
+    [Test]
+    public async Task ContractBody_NoAttribute_NoFilter_ThrowsInvalidOperation()
+    {
+        // ContractBody param without [Contract] attribute and without WithContractValidation
+        // → ResolveSchema returns null (line 279) → throws (lines 183-185)
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseTestServer();
+        builder.Services.AddGlueyContracts();
+
+        var app = builder.Build();
+        app.MapPost("/test", (ContractBody body) =>
+        {
+            return Results.Ok();
+        }).WithContract();
+
+        app.Start();
+
+        using var client = app.GetTestClient();
+        // BindAsync throws InvalidOperationException — TestHost propagates it
+        var act = async () => await client.PostAsync("/test",
+            new StringContent("""{"name":"Widget"}""", Encoding.UTF8, "application/json"));
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*[Contract]*");
+    }
 }
 
 public class OrderPayload : ContractBody<OrderPayload>
