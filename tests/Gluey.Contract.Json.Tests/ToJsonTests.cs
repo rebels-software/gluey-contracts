@@ -313,4 +313,208 @@ public class ToJsonTests
             doc.RootElement.EnumerateObject().Count().Should().Be(0);
         }
     }
+
+    // ── Schema with no properties (lines 58-59) ─────────────────────────
+
+    [Test]
+    public void ToJson_SchemaWithNoProperties_ReturnsEmptyOutput()
+    {
+        // Schema is just {"type":"object"} with no properties → WriteNode early return
+        var (result, schema) = ParseWith(
+            """{"type":"object"}""",
+            """{"anything":"goes"}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            // No properties defined in schema → nothing written
+            json.Length.Should().Be(0);
+        }
+    }
+
+    // ── Array with items that have no type (line 109 area) ──────────────
+
+    [Test]
+    public void ToJson_ArrayWithUntypedItems()
+    {
+        // Array with items:{} (no type) → WriteScalar with null schemaType
+        var (result, schema) = ParseWith("""
+            {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {}
+                    }
+                }
+            }
+            """,
+            """{"data":[1,"hello",true,null,-5]}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            using var doc = ParseJsonDoc(json);
+            var arr = doc.RootElement.GetProperty("data");
+            arr.GetArrayLength().Should().Be(5);
+            arr[0].GetInt32().Should().Be(1);
+            arr[1].GetString().Should().Be("hello");
+            arr[2].GetBoolean().Should().BeTrue();
+            arr[3].ValueKind.Should().Be(JsonValueKind.Null);
+            arr[4].GetInt32().Should().Be(-5);
+        }
+    }
+
+    // ── Null typed property (lines 121-124) ─────────────────────────────
+
+    [Test]
+    public void ToJson_NullableProperty_ExplicitNullType()
+    {
+        var (result, schema) = ParseWith("""
+            {
+                "type": "object",
+                "properties": {
+                    "value": { "type": "null" },
+                    "name": { "type": "string" }
+                }
+            }
+            """,
+            """{"value":null,"name":"test"}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            using var doc = ParseJsonDoc(json);
+            doc.RootElement.GetProperty("value").ValueKind.Should().Be(JsonValueKind.Null);
+            doc.RootElement.GetProperty("name").GetString().Should().Be("test");
+        }
+    }
+
+    // ── No type info — infer from raw bytes (lines 157-172) ─────────────
+
+    [Test]
+    public void ToJson_NoTypeInfo_InfersBoolean_True()
+    {
+        var (result, schema) = ParseWith("""
+            {
+                "type": "object",
+                "properties": {
+                    "flag": {}
+                }
+            }
+            """,
+            """{"flag":true}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            using var doc = ParseJsonDoc(json);
+            doc.RootElement.GetProperty("flag").GetBoolean().Should().BeTrue();
+        }
+    }
+
+    [Test]
+    public void ToJson_NoTypeInfo_InfersBoolean_False()
+    {
+        var (result, schema) = ParseWith("""
+            {
+                "type": "object",
+                "properties": {
+                    "flag": {}
+                }
+            }
+            """,
+            """{"flag":false}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            using var doc = ParseJsonDoc(json);
+            doc.RootElement.GetProperty("flag").GetBoolean().Should().BeFalse();
+        }
+    }
+
+    [Test]
+    public void ToJson_NoTypeInfo_InfersNull()
+    {
+        var (result, schema) = ParseWith("""
+            {
+                "type": "object",
+                "properties": {
+                    "value": {}
+                }
+            }
+            """,
+            """{"value":null}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            using var doc = ParseJsonDoc(json);
+            doc.RootElement.GetProperty("value").ValueKind.Should().Be(JsonValueKind.Null);
+        }
+    }
+
+    [Test]
+    public void ToJson_NoTypeInfo_InfersPositiveNumber()
+    {
+        var (result, schema) = ParseWith("""
+            {
+                "type": "object",
+                "properties": {
+                    "value": {}
+                }
+            }
+            """,
+            """{"value":42}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            using var doc = ParseJsonDoc(json);
+            doc.RootElement.GetProperty("value").GetInt32().Should().Be(42);
+        }
+    }
+
+    [Test]
+    public void ToJson_NoTypeInfo_InfersNegativeNumber()
+    {
+        var (result, schema) = ParseWith("""
+            {
+                "type": "object",
+                "properties": {
+                    "value": {}
+                }
+            }
+            """,
+            """{"value":-7}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            using var doc = ParseJsonDoc(json);
+            doc.RootElement.GetProperty("value").GetInt32().Should().Be(-7);
+        }
+    }
+
+    [Test]
+    public void ToJson_NoTypeInfo_InfersString()
+    {
+        var (result, schema) = ParseWith("""
+            {
+                "type": "object",
+                "properties": {
+                    "value": {}
+                }
+            }
+            """,
+            """{"value":"hello"}""");
+
+        using (result)
+        {
+            var json = result.ToJson(schema);
+            using var doc = ParseJsonDoc(json);
+            doc.RootElement.GetProperty("value").GetString().Should().Be("hello");
+        }
+    }
 }

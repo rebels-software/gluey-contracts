@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Gluey.Contract;
+namespace Gluey.Contract.Json;
 
 /// <summary>
-/// Configuration options that control schema validation behavior.
+/// Represents the JSON Schema "type" keyword values as a flags enum.
+/// Multiple types can be combined (e.g., <c>SchemaType.String | SchemaType.Null</c>
+/// for <c>"type": ["string", "null"]</c>).
 /// </summary>
-public sealed class SchemaOptions
+[Flags]
+internal enum SchemaType : byte
 {
-    /// <summary>
-    /// When <c>true</c>, the <c>format</c> keyword produces validation errors
-    /// for values that do not match the declared format.
-    /// When <c>false</c> (default), <c>format</c> is treated as an annotation only.
-    /// </summary>
-    /// <remarks>
-    /// Format assertion may allocate (string conversions for .NET parser APIs).
-    /// This is a documented exception to the zero-allocation guarantee.
-    /// </remarks>
-    public bool AssertFormat { get; init; } = false;
+    None    = 0,
+    Null    = 1 << 0,   // 1
+    Boolean = 1 << 1,   // 2
+    Integer = 1 << 2,   // 4
+    Number  = 1 << 3,   // 8
+    String  = 1 << 4,   // 16
+    Array   = 1 << 5,   // 32
+    Object  = 1 << 6,   // 64
 }

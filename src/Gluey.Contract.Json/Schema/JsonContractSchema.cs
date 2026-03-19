@@ -34,7 +34,7 @@ namespace Gluey.Contract.Json;
 /// Provides a parse API via <see cref="Parse"/> which returns <c>ParseResult?</c> and never throws.
 /// </para>
 /// </remarks>
-public class JsonContractSchema
+public class JsonContractSchema : IContractSchema
 {
     private readonly SchemaNode _root;
     private readonly Dictionary<string, int> _nameToOrdinal;
