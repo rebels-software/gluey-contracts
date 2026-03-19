@@ -7,8 +7,8 @@
 
 ### Core Infrastructure
 
-- [ ] **CORE-01**: ParsedProperty has a 1-byte format flag that dispatches GetXxx() between UTF-8 and binary reading
-- [ ] **CORE-02**: Adding format flag does not break existing JSON consumers (all JSON tests pass unchanged)
+- [x] **CORE-01**: ParsedProperty has a 1-byte format flag that dispatches GetXxx() between UTF-8 and binary reading
+- [x] **CORE-02**: Adding format flag does not break existing JSON consumers (all JSON tests pass unchanged)
 - [ ] **CORE-03**: BinaryContractSchema exposes TryLoad/Load static factory methods matching JsonContractSchema pattern
 - [ ] **CORE-04**: BinaryContractSchema.Parse(byte[]) returns ParseResult? (null for structurally invalid payloads)
 - [ ] **CORE-05**: Zero-allocation parse path using ArrayPool, OffsetTable, ErrorCollector, ArrayBuffer
@@ -105,8 +105,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | Phase 1 | Pending |
-| CORE-02 | Phase 1 | Pending |
+| CORE-01 | Phase 1 | Complete |
+| CORE-02 | Phase 1 | Complete |
 | CORE-03 | Phase 2 | Pending |
 | CORE-04 | Phase 3 | Pending |
 | CORE-05 | Phase 3 | Pending |
