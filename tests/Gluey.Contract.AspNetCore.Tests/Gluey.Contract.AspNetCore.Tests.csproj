@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Gluey.Contract.AspNetCore\Gluey.Contract.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Gluey.Contract.Json\Gluey.Contract.Json.csproj" />
   </ItemGroup>
 
 </Project>
