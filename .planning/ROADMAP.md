@@ -132,7 +132,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Format Flag | 0/1 | Planning complete | - |
-| 2. Contract Model | 0/3 | Planning complete | - |
+| 2. Contract Model | 1/3 | In Progress|  |
 | 3. Scalar Parsing | 0/? | Not started | - |
 | 4. Leaf Types | 0/? | Not started | - |
 | 5. Composite Types | 0/? | Not started | - |

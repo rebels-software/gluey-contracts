@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-19T22:38:06.471Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-19T23:08:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 4
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,26 +19,27 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** A consumer calls parsed["fieldName"].GetInt32() and gets the value -- without knowing or caring whether the backing data is JSON or a custom binary protocol.
-**Current focus:** Phase 01 — format-flag
+**Current focus:** Phase 02 — contract-model
 
 ## Current Position
 
-Phase: 01 (format-flag) — EXECUTING
-Plan: 1 of 1
+Phase: 02 (contract-model) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 2
+- Average duration: 4min
+- Total execution time: 0.13 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-format-flag | 1 | 3min | 3min |
+| 02-contract-model | 1 | 5min | 5min |
 
 **Recent Trend:**
 
@@ -47,6 +48,7 @@ Plan: 1 of 1
 
 *Updated after each plan completion*
 | Phase 01-format-flag P01 | 3min | 2 tasks | 3 files |
+| Phase 02-contract-model P01 | 5min | 1 task | 14 files |
 
 ## Accumulated Context
 
@@ -59,6 +61,8 @@ Recent decisions affecting current work:
 - [Roadmap]: Contract loading and all load-time validation grouped into single phase (Phase 2) since they share the same testable boundary
 - [Phase 01-format-flag]: Added _endianness byte alongside _format in Phase 1 to avoid second struct layout change in Phase 3
 - [Phase 01-format-flag]: Implemented real binary read paths (BinaryPrimitives) rather than NotSupportedException stubs
+- [Phase 02-contract-model P01]: Used JsonElement for FieldDto.Fields to handle polymorphic sub-fields (BitFieldDto for bits, FieldDto for struct)
+- [Phase 02-contract-model P01]: Struct sub-fields stored on both ArrayElement.StructFields and parent node StructFields
 
 ### Pending Todos
 
@@ -71,6 +75,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T22:38:06.468Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-contract-model/02-CONTEXT.md
+Last session: 2026-03-19T23:08:00Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-contract-model/02-01-SUMMARY.md

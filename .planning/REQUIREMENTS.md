@@ -15,7 +15,7 @@
 
 ### Contract Model
 
-- [ ] **CNTR-01**: Binary contract JSON loaded and parsed into internal model (BinaryContractNode tree)
+- [x] **CNTR-01**: Binary contract JSON loaded and parsed into internal model (BinaryContractNode tree)
 - [ ] **CNTR-02**: Dependency chain resolved at load time into ordered field array (no graph traversal at parse time)
 - [ ] **CNTR-03**: Contract-load validation: exactly one root field (no dependsOn)
 - [ ] **CNTR-04**: Contract-load validation: no cycles in dependency graph
@@ -110,7 +110,7 @@
 | CORE-03 | Phase 2 | Pending |
 | CORE-04 | Phase 3 | Pending |
 | CORE-05 | Phase 3 | Pending |
-| CNTR-01 | Phase 2 | Pending |
+| CNTR-01 | Phase 2 | Complete |
 | CNTR-02 | Phase 2 | Pending |
 | CNTR-03 | Phase 2 | Pending |
 | CNTR-04 | Phase 2 | Pending |
