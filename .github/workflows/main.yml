@@ -47,6 +47,7 @@ jobs:
       tag-prefix: contract-aspnetcore
 
   publish-contract:
+    needs: [build-and-test, create-tag-contract]
     if: always() && needs.build-and-test.result == 'success' && (startsWith(github.ref, 'refs/tags/contract/v') || needs.create-tag-contract.result == 'success')
     uses: rebels-software/github-actions/.github/workflows/publish-nuget.yaml@v1.1.0
     with:
