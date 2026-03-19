@@ -45,6 +45,7 @@ public class ContractBody : IDisposable
 {
     private ParseResult _result;
     private object? _validationFailure;
+    private IHeaderDictionary? _headers;
 
     /// <summary>
     /// Parameterless constructor for derived types and the <c>new()</c> constraint.
@@ -85,6 +86,12 @@ public class ContractBody : IDisposable
 
     /// <summary>Returns the underlying <see cref="ParseResult"/>.</summary>
     public ParseResult Result => _result;
+
+    /// <summary>The request headers. Available for reading request metadata without needing <c>HttpContext</c>.</summary>
+    public IHeaderDictionary Headers => _headers ?? throw new InvalidOperationException("Headers not available.");
+
+    /// <summary>Sets the headers reference. Used internally during binding.</summary>
+    internal void SetHeaders(IHeaderDictionary headers) => _headers = headers;
 
     /// <summary>
     /// Returns a struct enumerator over all parsed properties that have values.
@@ -154,6 +161,8 @@ internal static class ContractBodyBinder
     internal static async ValueTask<T?> BindAsync<T>(HttpContext context, ParameterInfo parameter)
         where T : ContractBody, new()
     {
+        var headers = context.Request.Headers;
+
         // If the filter already validated, reuse stored data
         if (context.Items.TryGetValue("Contract:Body", out var cachedBody) && cachedBody is byte[] cachedBytes
             && context.Items.TryGetValue("Contract:Schema", out var cachedSchema) && cachedSchema is IContractSchema cached)
@@ -161,7 +170,7 @@ internal static class ContractBodyBinder
             var cachedResult = cached.Parse(cachedBytes);
             if (cachedResult is { } parsed)
             {
-                var body = CreateSuccess<T>(parsed);
+                var body = CreateSuccess<T>(parsed, headers);
                 context.Response.RegisterForDispose(body);
                 return body;
             }
@@ -184,7 +193,7 @@ internal static class ContractBodyBinder
 
         if (result is null)
         {
-            var failure = CreateFailure<T>(new ContractProblemDetails
+            var failure = CreateFailure<T>(headers, new ContractProblemDetails
             {
                 Type = "https://tools.ietf.org/html/rfc9110#section-15.5.1",
                 Title = "Validation failed",
@@ -206,43 +215,52 @@ internal static class ContractBodyBinder
 
             if (options?.OnValidationFailed is { } handler)
             {
-                var failure = CreateFailure<T>(new DeferredValidationFailure(handler, result.Value.Errors));
+                var failure = CreateFailure<T>(headers, new DeferredValidationFailure(handler, result.Value.Errors));
                 context.Response.RegisterForDispose(failure);
                 return failure;
             }
 
             var problemDetails = ProblemDetailsMapper.Build(result.Value.Errors, context, options);
             result.Value.Dispose();
-            var failureBody = CreateFailure<T>(problemDetails);
+            var failureBody = CreateFailure<T>(headers, problemDetails);
             context.Response.RegisterForDispose(failureBody);
             return failureBody;
         }
 
-        var contractBody = CreateSuccess<T>(result.Value);
+        var contractBody = CreateSuccess<T>(result.Value, headers);
         context.Response.RegisterForDispose(contractBody);
         return contractBody;
     }
 
-    private static T CreateSuccess<T>(ParseResult result) where T : ContractBody, new()
-    {
-        if (typeof(T) == typeof(ContractBody))
-            return (T)(object)new ContractBody(result);
+    private static readonly FieldInfo ResultField = typeof(ContractBody).GetField("_result", BindingFlags.NonPublic | BindingFlags.Instance)!;
+    private static readonly FieldInfo FailureField = typeof(ContractBody).GetField("_validationFailure", BindingFlags.NonPublic | BindingFlags.Instance)!;
+    private static readonly FieldInfo HeadersField = typeof(ContractBody).GetField("_headers", BindingFlags.NonPublic | BindingFlags.Instance)!;
 
-        var instance = new T();
-        // Use reflection to set the private _result field
-        var field = typeof(ContractBody).GetField("_result", BindingFlags.NonPublic | BindingFlags.Instance)!;
-        field.SetValue(instance, result);
+    private static T CreateSuccess<T>(ParseResult result, IHeaderDictionary headers) where T : ContractBody, new()
+    {
+        T instance;
+        if (typeof(T) == typeof(ContractBody))
+            instance = (T)(object)new ContractBody(result);
+        else
+        {
+            instance = new T();
+            ResultField.SetValue(instance, result);
+        }
+        HeadersField.SetValue(instance, headers);
         return instance;
     }
 
-    private static T CreateFailure<T>(object failure) where T : ContractBody, new()
+    private static T CreateFailure<T>(IHeaderDictionary headers, object failure) where T : ContractBody, new()
     {
+        T instance;
         if (typeof(T) == typeof(ContractBody))
-            return (T)(object)new ContractBody(failure, false);
-
-        var instance = new T();
-        var field = typeof(ContractBody).GetField("_validationFailure", BindingFlags.NonPublic | BindingFlags.Instance)!;
-        field.SetValue(instance, failure);
+            instance = (T)(object)new ContractBody(failure, false);
+        else
+        {
+            instance = new T();
+            FailureField.SetValue(instance, failure);
+        }
+        HeadersField.SetValue(instance, headers);
         return instance;
     }
 

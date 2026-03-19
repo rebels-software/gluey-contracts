@@ -40,6 +40,7 @@ public static class HttpContextExtensions
                 ?? throw new InvalidOperationException("Contract validation passed but re-parse returned null.");
 
             var contractBody = new ContractBody(result);
+            contractBody.SetHeaders(context.Request.Headers);
             context.Response.RegisterForDispose(contractBody);
             return contractBody;
         }

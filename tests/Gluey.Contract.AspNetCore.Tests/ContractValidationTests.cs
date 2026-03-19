@@ -96,6 +96,12 @@ public class ContractValidationTests
             return Results.Ok(new { accepted = true, body.Name, body.Quantity });
         }).WithContract();
 
+        app.MapPost("/orders-headers", [Contract("order")] (ContractBody body) =>
+        {
+            var requestId = body.Headers["X-Request-Id"].ToString();
+            return Results.Ok(new { accepted = true, requestId });
+        }).WithContract();
+
         app.Start();
         return app.GetTestClient();
     }
@@ -405,6 +411,26 @@ public class ContractValidationTests
             new StringContent("""{"name":"Widget","quantity":200}""", Encoding.UTF8, "application/json"));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    // ── Headers access ──────────────────────────────────────────────────
+
+    [Test]
+    public async Task ContractBody_Headers_AccessibleInHandler()
+    {
+        using var client = CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "/orders-headers")
+        {
+            Content = new StringContent("""{"name":"Widget","quantity":5}""", Encoding.UTF8, "application/json")
+        };
+        request.Headers.Add("X-Request-Id", "abc-123");
+
+        var response = await client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("requestId").GetString().Should().Be("abc-123");
     }
 }
 
