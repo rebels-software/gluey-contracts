@@ -173,6 +173,29 @@ public enum ValidationErrorCode : byte
     /// <summary>The input is not valid JSON (structural/syntax error).</summary>
     InvalidJson,
 
+    // -- Binary contract errors --
+
+    /// <summary>Contract kind is missing or not "binary".</summary>
+    InvalidKind,
+
+    /// <summary>Cyclic dependency detected in field chain.</summary>
+    CyclicDependency,
+
+    /// <summary>Contract has no root field (all fields have dependsOn).</summary>
+    MissingRoot,
+
+    /// <summary>Multiple fields depend on the same parent (shared parent).</summary>
+    SharedParent,
+
+    /// <summary>Bit sub-fields overlap or exceed container size.</summary>
+    OverlappingBits,
+
+    /// <summary>Field is missing a required size declaration.</summary>
+    MissingSize,
+
+    /// <summary>A dependsOn or count reference points to a non-existent field.</summary>
+    InvalidReference,
+
     // -- Sentinel --
 
     /// <summary>Too many validation errors; remaining errors have been truncated.</summary>

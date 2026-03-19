@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <LangVersion>13</LangVersion>
+    <OutputType>Library</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Gluey.Contract.Binary</RootNamespace>
+    <AssemblyName>Gluey.Contract.Binary</AssemblyName>
+    <Version>1.0.0</Version>
+
+    <!-- NuGet Package -->
+    <PackageId>Gluey.Contract.Binary</PackageId>
+    <Authors>Gluey Contributors</Authors>
+    <Description>Binary format driver for Gluey.Contract</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageTags>binary;protocol;validation;zero-allocation;high-performance</PackageTags>
+    <RepositoryUrl>https://github.com/rebels/Gluey.Contracts</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gluey.Contract.Binary.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gluey.Contract\Gluey.Contract.csproj" />
+  </ItemGroup>
+
+</Project>
