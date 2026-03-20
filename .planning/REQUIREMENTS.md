@@ -36,24 +36,24 @@
 
 ### String and Enum
 
-- [ ] **STRE-01**: Parser reads fixed-length ASCII strings
-- [ ] **STRE-02**: Parser reads fixed-length UTF-8 strings
-- [ ] **STRE-03**: Enum field maps byte value to string via contract values table
-- [ ] **STRE-04**: Enum dual-access: parsed["name"] returns mapped string, parsed["names"] returns raw numeric
+- [x] **STRE-01**: Parser reads fixed-length ASCII strings
+- [x] **STRE-02**: Parser reads fixed-length UTF-8 strings
+- [x] **STRE-03**: Enum field maps byte value to string via contract values table
+- [x] **STRE-04**: Enum dual-access: parsed["name"] returns mapped string, parsed["names"] returns raw numeric
 
 ### Bit Fields
 
-- [ ] **BITS-01**: Bit container reads 1-2 bytes and extracts sub-fields at specified bit positions and widths
-- [ ] **BITS-02**: Boolean sub-fields (1-bit width) return true/false
-- [ ] **BITS-03**: Numeric sub-fields extract correct unsigned value across bit positions
-- [ ] **BITS-04**: Multi-byte bit containers (16 bits) work correctly with endianness
+- [x] **BITS-01**: Bit container reads 1-2 bytes and extracts sub-fields at specified bit positions and widths
+- [x] **BITS-02**: Boolean sub-fields (1-bit width) return true/false
+- [x] **BITS-03**: Numeric sub-fields extract correct unsigned value across bit positions
+- [x] **BITS-04**: Multi-byte bit containers (16 bits) work correctly with endianness
 
 ### Composite Types
 
 - [ ] **COMP-01**: Fixed arrays: count as number, parser reads N elements of specified type
 - [ ] **COMP-02**: Semi-dynamic arrays: count as string referencing another field, resolved at parse time
 - [ ] **COMP-03**: Struct elements inside arrays with scoped dependency chains (sub-field offsets relative to element start)
-- [ ] **COMP-04**: Padding fields: parser skips specified number of bytes, not exposed in ParsedObject
+- [x] **COMP-04**: Padding fields: parser skips specified number of bytes, not exposed in ParsedObject
 - [ ] **COMP-05**: Path-based access: parsed["arrayName/0/fieldName"] works for nested struct array elements
 
 ### Validation
@@ -125,18 +125,18 @@
 | SCLR-04 | Phase 3 | Complete |
 | SCLR-05 | Phase 3 | Complete |
 | SCLR-06 | Phase 3 | Complete |
-| STRE-01 | Phase 4 | Pending |
-| STRE-02 | Phase 4 | Pending |
-| STRE-03 | Phase 4 | Pending |
-| STRE-04 | Phase 4 | Pending |
-| BITS-01 | Phase 4 | Pending |
-| BITS-02 | Phase 4 | Pending |
-| BITS-03 | Phase 4 | Pending |
-| BITS-04 | Phase 4 | Pending |
+| STRE-01 | Phase 4 | Complete |
+| STRE-02 | Phase 4 | Complete |
+| STRE-03 | Phase 4 | Complete |
+| STRE-04 | Phase 4 | Complete |
+| BITS-01 | Phase 4 | Complete |
+| BITS-02 | Phase 4 | Complete |
+| BITS-03 | Phase 4 | Complete |
+| BITS-04 | Phase 4 | Complete |
 | COMP-01 | Phase 5 | Pending |
 | COMP-02 | Phase 5 | Pending |
 | COMP-03 | Phase 5 | Pending |
-| COMP-04 | Phase 4 | Pending |
+| COMP-04 | Phase 4 | Complete |
 | COMP-05 | Phase 5 | Pending |
 | VALD-01 | Phase 6 | Pending |
 | VALD-02 | Phase 6 | Pending |

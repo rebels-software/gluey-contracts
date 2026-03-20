@@ -80,7 +80,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Update ADR-16, extend ParsedProperty/BinaryContractNode/DTO/Loader with string and enum support, extend GetFieldType mapper
+- [x] 04-01-PLAN.md — Update ADR-16, extend ParsedProperty/BinaryContractNode/DTO/Loader with string and enum support, extend GetFieldType mapper
 - [ ] 04-02-PLAN.md — Implement Parse loop cases for string, enum, bits, and padding with NameToOrdinal/OffsetTable capacity expansion
 - [ ] 04-03-PLAN.md — End-to-end leaf type parsing tests covering all 9 requirements
 
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Format Flag | 0/1 | Planning complete | - |
 | 2. Contract Model | 3/3 | Complete   | 2026-03-19 |
 | 3. Scalar Parsing | 2/2 | Complete   | 2026-03-20 |
-| 4. Leaf Types | 0/3 | Planning complete | - |
+| 4. Leaf Types | 1/3 | In Progress|  |
 | 5. Composite Types | 0/? | Not started | - |
 | 6. Validation | 0/? | Not started | - |
 | 7. Packaging | 0/? | Not started | - |

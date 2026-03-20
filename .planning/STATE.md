@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-20T19:05:16.161Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-20T19:48:55.027Z"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** A consumer calls parsed["fieldName"].GetInt32() and gets the value -- without knowing or caring whether the backing data is JSON or a custom binary protocol.
-**Current focus:** Phase 03 — scalar-parsing
+**Current focus:** Phase 04 — leaf-types
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
+Phase: 04 (leaf-types) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Plan: Not started
 | Phase 02-contract-model P03 | 6min | 2 tasks | 6 files |
 | Phase 03-scalar-parsing P01 | 5min | 2 tasks | 4 files |
 | Phase 03-scalar-parsing P02 | 2min | 1 tasks | 1 files |
+| Phase 04-leaf-types P01 | 4min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 03-scalar-parsing]: Type strictness bypassed when _fieldType == None for backward compat with old binary constructor
 - [Phase 03-scalar-parsing]: Parse(byte[]) is primary implementation; Parse(ReadOnlySpan<byte>) delegates via ToArray()
 - [Phase 03-scalar-parsing]: Kept Plan 01 unit-level tests alongside 24 new end-to-end tests in same ScalarParsingTests class
+- [Phase 04-leaf-types]: Encoding byte packs charset (bit 0) and trim mode (bits 2-3) into single byte for minimal struct growth
+- [Phase 04-leaf-types]: Enum label lookup deferred to GetString() via Dictionary reference on ParsedProperty
+- [Phase 04-leaf-types]: String fields now parsed in main Parse() loop instead of skipped as non-scalar
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T19:05:16.158Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-leaf-types/04-CONTEXT.md
+Last session: 2026-03-20T19:48:55.024Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
