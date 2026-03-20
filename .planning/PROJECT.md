@@ -21,10 +21,13 @@ A consumer calls `parsed["fieldName"].GetInt32()` and gets the value — without
 - [x] Payload too short returns null (structurally invalid) — *Validated in Phase 3: scalar-parsing*
 - [x] Zero-allocation parse path (ArrayPool, same patterns as JSON package) — *Validated in Phase 3: scalar-parsing*
 
+- [x] Strings: fixed-length ASCII and UTF-8 with trim modes (plain, trimStart, trimEnd, trim) — *Validated in Phase 4: leaf-types*
+- [x] Enums: dual-access with `parsed["mode"]` → raw numeric, `parsed["modes"]` → mapped string label — *Validated in Phase 4: leaf-types*
+- [x] Bit fields: multi-byte containers (up to 16 bits), sub-fields at bit positions with path-based access — *Validated in Phase 4: leaf-types*
+- [x] Padding: named fields skip bytes, create Empty entries in ParseResult — *Validated in Phase 4: leaf-types*
+
 ### Active
-- [ ] All ADR-16 field types: strings (ASCII/UTF-8), enums, bit fields, arrays (fixed + semi-dynamic), structs, padding
-- [ ] Enum dual-access: `parsed["mode"]` → string, `parsed["modes"]` → raw numeric
-- [ ] Bit fields: multi-byte containers (up to 16 bits), sub-fields at bit positions
+- [ ] Remaining ADR-16 field types: arrays (fixed + semi-dynamic), structs
 - [ ] Fixed arrays: `count` as number, known at contract time
 - [ ] Semi-dynamic arrays: `count` as string referencing another field
 - [ ] Struct elements inside arrays with scoped dependency chains
@@ -72,7 +75,7 @@ A consumer calls `parsed["fieldName"].GetInt32()` and gets the value — without
 | Parse-only (no serialization) | Reduces scope, serialization needs contract for encoding which is a different concern | — Pending |
 | Payload too short → null | Mirrors JSON malformed input behavior, consistent API | ✓ Phase 3 |
 | count: number = fixed, count: string = ref | Clean discrimination, no wrapper objects, Gluey validates ref exists | — Pending |
-| Enum source accessor = name + "s" | Convention for accessing raw byte value alongside mapped string | — Pending |
+| Enum source accessor = name + "s" | Convention for accessing raw byte value alongside mapped string | ✓ Phase 4 (inverted: base=numeric, +s=string) |
 
 ---
-*Last updated: 2026-03-20 after Phase 3 completion*
+*Last updated: 2026-03-20 after Phase 4 completion*
