@@ -162,7 +162,72 @@ public class BinaryContractSchema
         return Load(bytes, registry, options);
     }
 
+    // -- Parse --
+
+    /// <summary>
+    /// Parses a binary payload against this contract schema.
+    /// Returns null if the payload is shorter than the contract's fixed size.
+    /// </summary>
+    /// <param name="data">The binary payload to parse.</param>
+    /// <returns>A ParseResult with scalar fields populated, or null if structurally invalid.</returns>
+    public ParseResult? Parse(byte[] data)
+    {
+        if (TotalFixedSize >= 0 && data.Length < TotalFixedSize)
+            return null;
+
+        var offsetTable = new OffsetTable(OrderedFields.Length);
+        var errors = new ErrorCollector();
+
+        for (int i = 0; i < OrderedFields.Length; i++)
+        {
+            var node = OrderedFields[i];
+
+            if (node.IsDynamicOffset)
+                break;
+
+            byte fieldType = GetFieldType(node.Type);
+            if (fieldType == 0)
+                continue; // non-scalar type, skip
+
+            var prop = new ParsedProperty(
+                data, node.AbsoluteOffset, node.Size,
+                "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness, fieldType);
+
+            offsetTable.Set(i, prop);
+        }
+
+        return new ParseResult(offsetTable, errors, NameToOrdinal);
+    }
+
+    /// <summary>
+    /// Parses a binary payload against this contract schema.
+    /// Returns null if the payload is shorter than the contract's fixed size.
+    /// </summary>
+    /// <param name="data">The binary payload span to parse.</param>
+    /// <returns>A ParseResult with scalar fields populated, or null if structurally invalid.</returns>
+    public ParseResult? Parse(ReadOnlySpan<byte> data)
+    {
+        if (TotalFixedSize >= 0 && data.Length < TotalFixedSize)
+            return null;
+
+        return Parse(data.ToArray());
+    }
+
     // -- Private helpers --
+
+    private static byte GetFieldType(string type) => type switch
+    {
+        "uint8" => FieldTypes.UInt8,
+        "uint16" => FieldTypes.UInt16,
+        "uint32" => FieldTypes.UInt32,
+        "int8" => FieldTypes.Int8,
+        "int16" => FieldTypes.Int16,
+        "int32" => FieldTypes.Int32,
+        "float32" => FieldTypes.Float32,
+        "float64" => FieldTypes.Float64,
+        "boolean" => FieldTypes.Boolean,
+        _ => 0 // non-scalar: string, enum, bits, array, struct, padding
+    };
 
     private static int ComputeTotalFixedSize(BinaryContractNode[] orderedFields)
     {
