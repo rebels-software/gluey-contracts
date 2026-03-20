@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Buffers.Binary;
 using System.Text;
 
 namespace Gluey.Contract.Binary.Schema;
@@ -223,6 +224,10 @@ public class BinaryContractSchema
         var offsetTable = new OffsetTable(TotalOrdinalCapacity);
         var errors = new ErrorCollector();
 
+        // Allocate scratch buffer for bit sub-field extracted values
+        byte[]? bitScratchBuffer = _totalBitSubFields > 0 ? new byte[_totalBitSubFields] : null;
+        int bitScratchOffset = 0;
+
         for (int i = 0; i < OrderedFields.Length; i++)
         {
             var node = OrderedFields[i];
@@ -232,13 +237,105 @@ public class BinaryContractSchema
 
             byte fieldType = GetFieldType(node.Type);
             if (fieldType == 0)
-                continue; // non-scalar type, skip
+                continue; // composite type (array, struct) -- Phase 5
 
-            var prop = new ParsedProperty(
-                data, node.AbsoluteOffset, node.Size,
-                "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness, fieldType);
+            switch (fieldType)
+            {
+                case FieldTypes.Padding:
+                    // D-13/D-14/D-15: Named entry, Empty value, cursor advance is implicit via AbsoluteOffset
+                    // offsetTable slot stays default (ParsedProperty.Empty) -- no Set call needed
+                    break;
 
-            offsetTable.Set(i, prop);
+                case FieldTypes.String:
+                {
+                    // D-01/D-02/D-04: Encoding + trim mode packed into one byte
+                    // Bits 0-1: encoding (0=UTF-8, 1=ASCII), Bits 2-3: mode (0=plain, 1=trimStart, 2=trimEnd, 3=trim)
+                    byte encodingByte = (byte)((node.Encoding == "ASCII" ? 1 : 0) | (node.StringMode << 2));
+                    var prop = new ParsedProperty(
+                        data, node.AbsoluteOffset, node.Size,
+                        "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness,
+                        FieldTypes.String, encodingByte);
+                    offsetTable.Set(i, prop);
+                    break;
+                }
+
+                case FieldTypes.Enum:
+                {
+                    // D-05/D-06: Two entries -- base name for raw numeric, suffixed name for string label
+                    // Base entry: raw numeric access using the enum's primitive type
+                    byte enumPrimitiveType = GetFieldType(node.EnumPrimitive ?? "uint8");
+                    var rawProp = new ParsedProperty(
+                        data, node.AbsoluteOffset, node.Size,
+                        "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness, enumPrimitiveType);
+                    offsetTable.Set(i, rawProp);
+
+                    // Suffixed entry: D-07 lazy dictionary lookup, D-08 unmapped fallback
+                    if (NameToOrdinal.TryGetValue(node.Name + "s", out int suffixedOrdinal))
+                    {
+                        var labelProp = new ParsedProperty(
+                            data, node.AbsoluteOffset, node.Size,
+                            "/" + node.Name + "s", /*format:*/ 1, node.ResolvedEndianness,
+                            FieldTypes.Enum, node.EnumValues);
+                        offsetTable.Set(suffixedOrdinal, labelProp);
+                    }
+                    break;
+                }
+
+                case FieldTypes.Bits:
+                {
+                    // D-10: Container itself accessible with raw byte value
+                    var containerProp = new ParsedProperty(
+                        data, node.AbsoluteOffset, node.Size,
+                        "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness,
+                        node.Size == 1 ? FieldTypes.UInt8 : FieldTypes.UInt16);
+                    offsetTable.Set(i, containerProp);
+
+                    // D-11/D-12: Pre-extract sub-fields at parse time
+                    if (node.BitFields is not null)
+                    {
+                        // Read container value with endianness (D-12)
+                        uint containerValue;
+                        if (node.Size == 1)
+                        {
+                            containerValue = data[node.AbsoluteOffset];
+                        }
+                        else // size == 2
+                        {
+                            containerValue = node.ResolvedEndianness == 0
+                                ? BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(node.AbsoluteOffset, 2))
+                                : BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(node.AbsoluteOffset, 2));
+                        }
+
+                        // D-09: Extract each sub-field, store at path "containerName/subFieldName"
+                        foreach (var (subName, info) in node.BitFields)
+                        {
+                            uint mask = (1u << info.Bits) - 1;
+                            byte extracted = (byte)((containerValue >> info.Bit) & mask);
+
+                            string subPath = "/" + node.Name + "/" + subName;
+                            if (NameToOrdinal.TryGetValue(node.Name + "/" + subName, out int subOrdinal))
+                            {
+                                byte subFieldType = GetFieldType(info.Type);
+                                bitScratchBuffer![bitScratchOffset] = extracted;
+                                var subProp = new ParsedProperty(
+                                    bitScratchBuffer, bitScratchOffset, 1,
+                                    subPath, /*format:*/ 1, /*endianness:*/ 0, subFieldType);
+                                offsetTable.Set(subOrdinal, subProp);
+                                bitScratchOffset++;
+                            }
+                        }
+                    }
+                    break;
+                }
+
+                default:
+                    // Scalar types (existing behavior)
+                    var scalarProp = new ParsedProperty(
+                        data, node.AbsoluteOffset, node.Size,
+                        "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness, fieldType);
+                    offsetTable.Set(i, scalarProp);
+                    break;
+            }
         }
 
         return new ParseResult(offsetTable, errors, NameToOrdinal);
