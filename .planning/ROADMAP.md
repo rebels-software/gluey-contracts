@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Format Flag** - Add binary format discriminator to ParsedProperty without breaking JSON consumers
 - [x] **Phase 2: Contract Model** - Load, validate, and resolve binary contract JSON into an ordered field descriptor array (completed 2026-03-19)
 - [x] **Phase 3: Scalar Parsing** - First end-to-end parse pipeline reading scalar fields from binary payloads (completed 2026-03-20)
-- [ ] **Phase 4: Leaf Types** - Strings, enums, bit fields, and padding complete the non-composite field types
+- [x] **Phase 4: Leaf Types** - Strings, enums, bit fields, and padding complete the non-composite field types (completed 2026-03-20)
 - [ ] **Phase 5: Composite Types** - Arrays and nested structs with path-based access
 - [ ] **Phase 6: Validation** - Contract-driven min/max, pattern, and length validation with error collection
 - [ ] **Phase 7: Packaging** - NuGet package, CI pipeline, integration tests, and documentation
@@ -82,7 +82,7 @@ Plans:
 Plans:
 - [x] 04-01-PLAN.md — Update ADR-16, extend ParsedProperty/BinaryContractNode/DTO/Loader with string and enum support, extend GetFieldType mapper
 - [x] 04-02-PLAN.md — Implement Parse loop cases for string, enum, bits, and padding with NameToOrdinal/OffsetTable capacity expansion
-- [ ] 04-03-PLAN.md — End-to-end leaf type parsing tests covering all 9 requirements
+- [x] 04-03-PLAN.md — End-to-end leaf type parsing tests covering all 9 requirements
 
 ### Phase 5: Composite Types
 **Goal**: Arrays and nested structs parse correctly with path-based access to elements
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Format Flag | 0/1 | Planning complete | - |
 | 2. Contract Model | 3/3 | Complete   | 2026-03-19 |
 | 3. Scalar Parsing | 2/2 | Complete   | 2026-03-20 |
-| 4. Leaf Types | 2/3 | In Progress|  |
+| 4. Leaf Types | 3/3 | Complete   | 2026-03-20 |
 | 5. Composite Types | 0/? | Not started | - |
 | 6. Validation | 0/? | Not started | - |
 | 7. Packaging | 0/? | Not started | - |
