@@ -26,12 +26,12 @@ A consumer calls `parsed["fieldName"].GetInt32()` and gets the value — without
 - [x] Bit fields: multi-byte containers (up to 16 bits), sub-fields at bit positions with path-based access — *Validated in Phase 4: leaf-types*
 - [x] Padding: named fields skip bytes, create Empty entries in ParseResult — *Validated in Phase 4: leaf-types*
 
+- [x] Fixed arrays: `count` as number, parser reads N elements — *Validated in Phase 5: composite-types*
+- [x] Semi-dynamic arrays: `count` as string referencing another field, resolved at parse time — *Validated in Phase 5: composite-types*
+- [x] Struct elements inside arrays with scoped dependency chains — *Validated in Phase 5: composite-types*
+- [x] Path-based access: `parsed["recentErrors/0/code"]` matching JSON Pointer style — *Validated in Phase 5: composite-types*
+
 ### Active
-- [ ] Remaining ADR-16 field types: arrays (fixed + semi-dynamic), structs
-- [ ] Fixed arrays: `count` as number, known at contract time
-- [ ] Semi-dynamic arrays: `count` as string referencing another field
-- [ ] Struct elements inside arrays with scoped dependency chains
-- [ ] Path-based access: `parsed["recentErrors/0/code"]` matching JSON Pointer style
 - [ ] Validation: min/max for numerics, pattern/minLength/maxLength for strings
 - [ ] Contract-load validation: single root, no cycles, no shared parents, valid references
 - [ ] Payload too short returns null (structurally invalid)
@@ -78,4 +78,4 @@ A consumer calls `parsed["fieldName"].GetInt32()` and gets the value — without
 | Enum source accessor = name + "s" | Convention for accessing raw byte value alongside mapped string | ✓ Phase 4 (inverted: base=numeric, +s=string) |
 
 ---
-*Last updated: 2026-03-20 after Phase 4 completion*
+*Last updated: 2026-03-21 after Phase 5 completion*
