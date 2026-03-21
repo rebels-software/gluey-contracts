@@ -221,12 +221,36 @@ public class BinaryContractSchema
         if (TotalFixedSize >= 0 && data.Length < TotalFixedSize)
             return null;
 
-        var offsetTable = new OffsetTable(TotalOrdinalCapacity);
+        // Clone NameToOrdinal for parse-local element path expansion (D-08, Pitfall 1)
+        var parseNameToOrdinal = new Dictionary<string, int>(NameToOrdinal, StringComparer.Ordinal);
+
+        // Rent ArrayBuffer for array element storage (D-03)
+        var arrayBuffer = ArrayBuffer.Rent(initialCapacity: 16, maxOrdinal: 16);
+        int arrayRegionIndex = 0;
+
+        // Compute expanded OffsetTable capacity for fixed array elements
+        int expandedCapacity = TotalOrdinalCapacity;
+        for (int i = 0; i < OrderedFields.Length; i++)
+        {
+            var node = OrderedFields[i];
+            if (node.Type == "array" && node.Count is int fixedCount && node.ArrayElement is not null)
+            {
+                if (node.ArrayElement.StructFields is not null && node.ArrayElement.StructFields.Length > 0)
+                    expandedCapacity += fixedCount * node.ArrayElement.StructFields.Length;
+                else
+                    expandedCapacity += fixedCount;
+            }
+        }
+
+        var offsetTable = new OffsetTable(expandedCapacity);
         var errors = new ErrorCollector();
 
         // Allocate scratch buffer for bit sub-field extracted values
         byte[]? bitScratchBuffer = _totalBitSubFields > 0 ? new byte[_totalBitSubFields] : null;
         int bitScratchOffset = 0;
+
+        // Track next dynamic ordinal for array element entries (beyond pre-allocated range)
+        int nextDynamicOrdinal = TotalOrdinalCapacity;
 
         for (int i = 0; i < OrderedFields.Length; i++)
         {
@@ -237,7 +261,82 @@ public class BinaryContractSchema
 
             byte fieldType = GetFieldType(node.Type);
             if (fieldType == 0)
-                continue; // composite type (array, struct) -- Phase 5
+            {
+                // Handle array type nodes
+                if (node.Type == "array" && node.Count is int arrayCount && node.ArrayElement is not null)
+                {
+                    int count = arrayCount;
+                    var elemInfo = node.ArrayElement;
+
+                    // Graceful degradation (D-05): clamp count by available payload bytes
+                    int arrayBaseOffset = node.AbsoluteOffset;
+                    int elementSize = elemInfo.Size;
+                    int availableBytes = data.Length - arrayBaseOffset;
+                    int maxFit = elementSize > 0 ? availableBytes / elementSize : 0;
+                    if (maxFit < count) count = maxFit;
+
+                    int currentArrayRegion = arrayRegionIndex++;
+
+                    if (elemInfo.Type == "struct" && elemInfo.StructFields is not null)
+                    {
+                        // Struct array elements (D-07, COMP-03)
+                        for (int e = 0; e < count; e++)
+                        {
+                            int elementBase = arrayBaseOffset + (e * elementSize);
+
+                            // Register sub-fields in OffsetTable + NameToOrdinal for O(1) path access
+                            foreach (var sf in elemInfo.StructFields)
+                            {
+                                int sfOffset = elementBase + sf.AbsoluteOffset;
+                                byte sfFieldType = GetFieldType(sf.Type);
+                                string sfPath = node.Name + "/" + e + "/" + sf.Name;
+                                var sfProp = new ParsedProperty(
+                                    data, sfOffset, sf.Size, "/" + sfPath,
+                                    /*format:*/ 1, sf.ResolvedEndianness, sfFieldType);
+                                parseNameToOrdinal[sfPath] = nextDynamicOrdinal;
+                                offsetTable.Set(nextDynamicOrdinal, sfProp);
+                                nextDynamicOrdinal++;
+                            }
+
+                            // Create struct element entry wired to NameToOrdinal for child navigation
+                            var structElemProp = new ParsedProperty(
+                                data, elementBase, elementSize, "/" + node.Name + "/" + e,
+                                /*format:*/ 1, node.ResolvedEndianness, FieldTypes.None,
+                                offsetTable, parseNameToOrdinal, null, -1);
+                            arrayBuffer.Add(currentArrayRegion, structElemProp);
+                        }
+                    }
+                    else
+                    {
+                        // Scalar array elements (D-02)
+                        byte elemFieldType = GetFieldType(elemInfo.Type);
+                        for (int e = 0; e < count; e++)
+                        {
+                            int elemOffset = arrayBaseOffset + (e * elementSize);
+                            string elemPath = node.Name + "/" + e;
+                            var elemProp = new ParsedProperty(
+                                data, elemOffset, elementSize, "/" + elemPath,
+                                /*format:*/ 1, node.ResolvedEndianness, elemFieldType);
+                            arrayBuffer.Add(currentArrayRegion, elemProp);
+                            parseNameToOrdinal[elemPath] = nextDynamicOrdinal;
+                            offsetTable.Set(nextDynamicOrdinal, elemProp);
+                            nextDynamicOrdinal++;
+                        }
+                    }
+
+                    // Container ParsedProperty wired to ArrayBuffer for enumeration (D-01, D-03)
+                    int totalArrayBytes = count * elementSize;
+                    var containerProp = new ParsedProperty(
+                        data, arrayBaseOffset, totalArrayBytes, "/" + node.Name,
+                        /*format:*/ 1, node.ResolvedEndianness, FieldTypes.None,
+                        offsetTable, parseNameToOrdinal, arrayBuffer, currentArrayRegion);
+                    offsetTable.Set(i, containerProp);
+
+                    continue;
+                }
+
+                continue; // unknown composite type
+            }
 
             switch (fieldType)
             {
@@ -338,7 +437,7 @@ public class BinaryContractSchema
             }
         }
 
-        return new ParseResult(offsetTable, errors, NameToOrdinal);
+        return new ParseResult(offsetTable, errors, parseNameToOrdinal, arrayBuffer);
     }
 
     /// <summary>
