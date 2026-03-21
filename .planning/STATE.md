@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-21T09:45:33.761Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-21T10:45:34.355Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** A consumer calls parsed["fieldName"].GetInt32() and gets the value -- without knowing or caring whether the backing data is JSON or a custom binary protocol.
-**Current focus:** Phase 04 — leaf-types
+**Current focus:** Phase 05 — composite-types
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
+Phase: 05 (composite-types) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Plan: Not started
 | Phase 04-leaf-types P01 | 4min | 2 tasks | 7 files |
 | Phase 04-leaf-types P02 | 2min | 2 tasks | 1 files |
 | Phase 04-leaf-types P03 | 2min | 2 tasks | 1 files |
+| Phase 05-composite-types P01 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Recent decisions affecting current work:
 - [Phase 04-leaf-types]: Bit sub-field values stored in per-parse scratch buffer rather than modifying payload data
 - [Phase 04-leaf-types]: Enum raw access uses primitive type from EnumPrimitive, not FieldTypes.Enum
 - [Phase 04-leaf-types]: Separate test contracts per feature area for isolated, readable leaf type tests
+- [Phase 05-composite-types]: NameToOrdinal cloned at parse start to prevent schema mutation across concurrent/sequential Parse() calls
+- [Phase 05-composite-types]: Struct array elements: sub-fields get O(1) OffsetTable/NameToOrdinal entries; one ArrayBuffer entry per struct element for enumeration
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:45:33.758Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-composite-types/05-CONTEXT.md
+Last session: 2026-03-21T10:45:34.352Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None

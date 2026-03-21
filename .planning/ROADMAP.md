@@ -96,7 +96,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Fixed array element expansion with NameToOrdinal clone, ArrayBuffer, and container ParsedProperty
+- [x] 05-01-PLAN.md — Fixed array element expansion with NameToOrdinal clone, ArrayBuffer, and container ParsedProperty
 - [ ] 05-02-PLAN.md — Semi-dynamic array support with Pass 2 dynamic offset recomputation
 - [ ] 05-03-PLAN.md — End-to-end composite type parsing tests covering all 4 requirements
 
@@ -140,6 +140,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Contract Model | 3/3 | Complete   | 2026-03-19 |
 | 3. Scalar Parsing | 2/2 | Complete   | 2026-03-20 |
 | 4. Leaf Types | 3/3 | Complete   | 2026-03-20 |
-| 5. Composite Types | 0/3 | Planning complete | - |
+| 5. Composite Types | 1/3 | In Progress|  |
 | 6. Validation | 0/? | Not started | - |
 | 7. Packaging | 0/? | Not started | - |
