@@ -326,6 +326,20 @@ public class BinaryContractSchema
                                 parseNameToOrdinal[sfPath] = nextDynamicOrdinal;
                                 offsetTable.Set(nextDynamicOrdinal, sfProp);
                                 nextDynamicOrdinal++;
+                                if (sf.Validation is not null)
+                                {
+                                    byte sfFieldType2 = GetFieldType(sf.Type);
+                                    if (sfFieldType2 == FieldTypes.String)
+                                    {
+                                        string sfStrValue = sfProp.GetString();
+                                        BinaryFieldValidator.ValidateString(sfStrValue, "/" + sfPath, sf.Validation, sf.CompiledPattern, errors);
+                                    }
+                                    else if (sfFieldType2 != 0 && sfFieldType2 != FieldTypes.Padding && sfFieldType2 != FieldTypes.Bits && sfFieldType2 != FieldTypes.Enum)
+                                    {
+                                        double sfNumValue = BinaryFieldValidator.ExtractNumericAsDouble(sfProp, sfFieldType2);
+                                        BinaryFieldValidator.ValidateNumeric(sfNumValue, "/" + sfPath, sf.Validation, errors);
+                                    }
+                                }
                             }
 
                             // Create struct element entry wired to NameToOrdinal for child navigation
@@ -351,6 +365,19 @@ public class BinaryContractSchema
                             parseNameToOrdinal[elemPath] = nextDynamicOrdinal;
                             offsetTable.Set(nextDynamicOrdinal, elemProp);
                             nextDynamicOrdinal++;
+                            if (node.Validation is not null)
+                            {
+                                if (elemFieldType == FieldTypes.String)
+                                {
+                                    string elemStrValue = elemProp.GetString();
+                                    BinaryFieldValidator.ValidateString(elemStrValue, "/" + elemPath, node.Validation, node.CompiledPattern, errors);
+                                }
+                                else if (elemFieldType != 0 && elemFieldType != FieldTypes.Padding && elemFieldType != FieldTypes.Bits && elemFieldType != FieldTypes.Enum)
+                                {
+                                    double elemValue = BinaryFieldValidator.ExtractNumericAsDouble(elemProp, elemFieldType);
+                                    BinaryFieldValidator.ValidateNumeric(elemValue, "/" + elemPath, node.Validation, errors);
+                                }
+                            }
                         }
                     }
 
@@ -385,6 +412,11 @@ public class BinaryContractSchema
                         "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness,
                         FieldTypes.String, encodingByte);
                     offsetTable.Set(i, prop);
+                    if (node.Validation is not null)
+                    {
+                        string strValue = prop.GetString();
+                        BinaryFieldValidator.ValidateString(strValue, "/" + node.Name, node.Validation, node.CompiledPattern, errors);
+                    }
                     break;
                 }
 
@@ -463,6 +495,11 @@ public class BinaryContractSchema
                         data, node.AbsoluteOffset, node.Size,
                         "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness, fieldType);
                     offsetTable.Set(i, scalarProp);
+                    if (node.Validation is not null)
+                    {
+                        double numValue = BinaryFieldValidator.ExtractNumericAsDouble(scalarProp, fieldType);
+                        BinaryFieldValidator.ValidateNumeric(numValue, "/" + node.Name, node.Validation, errors);
+                    }
                     break;
             }
         }
@@ -546,6 +583,20 @@ public class BinaryContractSchema
                                     parseNameToOrdinal[sfPath] = nextDynamicOrdinal;
                                     offsetTable.Set(nextDynamicOrdinal, sfProp);
                                     nextDynamicOrdinal++;
+                                    if (sf.Validation is not null)
+                                    {
+                                        byte sfFieldType2 = GetFieldType(sf.Type);
+                                        if (sfFieldType2 == FieldTypes.String)
+                                        {
+                                            string sfStrValue = sfProp.GetString();
+                                            BinaryFieldValidator.ValidateString(sfStrValue, "/" + sfPath, sf.Validation, sf.CompiledPattern, errors);
+                                        }
+                                        else if (sfFieldType2 != 0 && sfFieldType2 != FieldTypes.Padding && sfFieldType2 != FieldTypes.Bits && sfFieldType2 != FieldTypes.Enum)
+                                        {
+                                            double sfNumValue = BinaryFieldValidator.ExtractNumericAsDouble(sfProp, sfFieldType2);
+                                            BinaryFieldValidator.ValidateNumeric(sfNumValue, "/" + sfPath, sf.Validation, errors);
+                                        }
+                                    }
                                 }
 
                                 var structElemProp = new ParsedProperty(
@@ -574,6 +625,19 @@ public class BinaryContractSchema
                                 parseNameToOrdinal[elemPath] = nextDynamicOrdinal;
                                 offsetTable.Set(nextDynamicOrdinal, elemProp);
                                 nextDynamicOrdinal++;
+                                if (node.Validation is not null)
+                                {
+                                    if (elemFieldType == FieldTypes.String)
+                                    {
+                                        string elemStrValue = elemProp.GetString();
+                                        BinaryFieldValidator.ValidateString(elemStrValue, "/" + elemPath, node.Validation, node.CompiledPattern, errors);
+                                    }
+                                    else if (elemFieldType != 0 && elemFieldType != FieldTypes.Padding && elemFieldType != FieldTypes.Bits && elemFieldType != FieldTypes.Enum)
+                                    {
+                                        double elemValue = BinaryFieldValidator.ExtractNumericAsDouble(elemProp, elemFieldType);
+                                        BinaryFieldValidator.ValidateNumeric(elemValue, "/" + elemPath, node.Validation, errors);
+                                    }
+                                }
                             }
                         }
 
@@ -612,6 +676,11 @@ public class BinaryContractSchema
                             "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness,
                             FieldTypes.String, encodingByte);
                         offsetTable.Set(i, prop);
+                        if (node.Validation is not null)
+                        {
+                            string strValue = prop.GetString();
+                            BinaryFieldValidator.ValidateString(strValue, "/" + node.Name, node.Validation, node.CompiledPattern, errors);
+                        }
                         runningOffset += node.Size;
                         break;
                     }
@@ -685,6 +754,11 @@ public class BinaryContractSchema
                             data, actualOffset, node.Size,
                             "/" + node.Name, /*format:*/ 1, node.ResolvedEndianness, fieldType);
                         offsetTable.Set(i, scalarProp);
+                        if (node.Validation is not null)
+                        {
+                            double numValue = BinaryFieldValidator.ExtractNumericAsDouble(scalarProp, fieldType);
+                            BinaryFieldValidator.ValidateNumeric(numValue, "/" + node.Name, node.Validation, errors);
+                        }
                         runningOffset += node.Size;
                         break;
                 }
