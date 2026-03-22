@@ -16,6 +16,8 @@
     <Description>Binary format driver for Gluey.Contract</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageTags>binary;protocol;validation;zero-allocation;high-performance</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/rebels/Gluey.Contracts</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -32,6 +34,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Gluey.Contract\Gluey.Contract.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\assets\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
