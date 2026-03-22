@@ -61,7 +61,7 @@
 - [x] **VALD-01**: Numeric fields validated against min/max from contract
 - [x] **VALD-02**: String fields validated against pattern (regex) from contract
 - [x] **VALD-03**: String fields validated against minLength/maxLength from contract
-- [ ] **VALD-04**: Payload too short for fixed-size contract returns null
+- [x] **VALD-04**: Payload too short for fixed-size contract returns null
 - [x] **VALD-05**: Multiple validation errors collected (not fail-fast), using ErrorCollector
 
 ### Packaging
@@ -141,7 +141,7 @@
 | VALD-01 | Phase 6 | Complete |
 | VALD-02 | Phase 6 | Complete |
 | VALD-03 | Phase 6 | Complete |
-| VALD-04 | Phase 6 | Pending |
+| VALD-04 | Phase 6 | Complete |
 | VALD-05 | Phase 6 | Complete |
 | PACK-01 | Phase 7 | Pending |
 | PACK-02 | Phase 7 | Pending |

@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Scalar Parsing** - First end-to-end parse pipeline reading scalar fields from binary payloads (completed 2026-03-20)
 - [x] **Phase 4: Leaf Types** - Strings, enums, bit fields, and padding complete the non-composite field types (completed 2026-03-20)
 - [ ] **Phase 5: Composite Types** - Arrays and nested structs with path-based access
-- [ ] **Phase 6: Validation** - Contract-driven min/max, pattern, and length validation with error collection
+- [x] **Phase 6: Validation** - Contract-driven min/max, pattern, and length validation with error collection (completed 2026-03-22)
 - [ ] **Phase 7: Packaging** - NuGet package, CI pipeline, integration tests, and documentation
 
 ## Phase Details
@@ -113,7 +113,7 @@ Plans:
 
 Plans:
 - [x] 06-01-PLAN.md — Create BinaryFieldValidator, add CompiledPattern to contract model, add inline validation in Parse()
-- [ ] 06-02-PLAN.md — End-to-end validation tests covering all 5 requirements
+- [x] 06-02-PLAN.md — End-to-end validation tests covering all 5 requirements
 
 ### Phase 7: Packaging
 **Goal**: Gluey.Contract.Binary is published as a NuGet package with CI, tests, and documentation
@@ -142,5 +142,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Scalar Parsing | 2/2 | Complete   | 2026-03-20 |
 | 4. Leaf Types | 3/3 | Complete   | 2026-03-20 |
 | 5. Composite Types | 1/3 | In Progress|  |
-| 6. Validation | 1/2 | In Progress|  |
+| 6. Validation | 2/2 | Complete   | 2026-03-22 |
 | 7. Packaging | 0/? | Not started | - |
