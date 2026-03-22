@@ -8,6 +8,7 @@ on:
       - 'contract/v*'
       - 'contract-json/v*'
       - 'contract-aspnetcore/v*'
+      - 'contract-binary/v*'
   pull_request:
     branches: [main]
 
@@ -46,6 +47,14 @@ jobs:
       csproj-path: src/Gluey.Contract.AspNetCore/Gluey.Contract.AspNetCore.csproj
       tag-prefix: contract-aspnetcore
 
+  create-tag-contract-binary:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [build-and-test]
+    uses: rebels-software/github-actions/.github/workflows/create-version-tag.yaml@v1.1.0
+    with:
+      csproj-path: src/Gluey.Contract.Binary/Gluey.Contract.Binary.csproj
+      tag-prefix: contract-binary
+
   publish-contract:
     needs: [build-and-test, create-tag-contract]
     if: always() && needs.build-and-test.result == 'success' && (startsWith(github.ref, 'refs/tags/contract/v') || needs.create-tag-contract.result == 'success')
@@ -76,6 +85,18 @@ jobs:
     uses: rebels-software/github-actions/.github/workflows/publish-nuget.yaml@v1.1.0
     with:
       csproj-path: src/Gluey.Contract.AspNetCore/Gluey.Contract.AspNetCore.csproj
+      dotnet-version: |
+        9.0.x
+        10.0.x
+    secrets:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+  publish-contract-binary:
+    needs: [build-and-test, create-tag-contract-binary]
+    if: always() && needs.build-and-test.result == 'success' && (startsWith(github.ref, 'refs/tags/contract-binary/v') || needs.create-tag-contract-binary.result == 'success')
+    uses: rebels-software/github-actions/.github/workflows/publish-nuget.yaml@v1.1.0
+    with:
+      csproj-path: src/Gluey.Contract.Binary/Gluey.Contract.Binary.csproj
       dotnet-version: |
         9.0.x
         10.0.x
