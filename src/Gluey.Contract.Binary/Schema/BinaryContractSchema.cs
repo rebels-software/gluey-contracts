@@ -332,12 +332,12 @@ public class BinaryContractSchema
                                     if (sfFieldType2 == FieldTypes.String)
                                     {
                                         string sfStrValue = sfProp.GetString();
-                                        BinaryFieldValidator.ValidateString(sfStrValue, "/" + sfPath, sf.Validation, sf.CompiledPattern, errors);
+                                        BinaryFieldValidator.ValidateString(sfStrValue, "/" + sfPath, sf.Validation, sf.CompiledPattern, sf.ErrorInfo, errors);
                                     }
                                     else if (sfFieldType2 != 0 && sfFieldType2 != FieldTypes.Padding && sfFieldType2 != FieldTypes.Bits && sfFieldType2 != FieldTypes.Enum)
                                     {
                                         double sfNumValue = BinaryFieldValidator.ExtractNumericAsDouble(sfProp, sfFieldType2);
-                                        BinaryFieldValidator.ValidateNumeric(sfNumValue, "/" + sfPath, sf.Validation, errors);
+                                        BinaryFieldValidator.ValidateNumeric(sfNumValue, "/" + sfPath, sf.Validation, sf.ErrorInfo, errors);
                                     }
                                 }
                             }
@@ -370,12 +370,12 @@ public class BinaryContractSchema
                                 if (elemFieldType == FieldTypes.String)
                                 {
                                     string elemStrValue = elemProp.GetString();
-                                    BinaryFieldValidator.ValidateString(elemStrValue, "/" + elemPath, node.Validation, node.CompiledPattern, errors);
+                                    BinaryFieldValidator.ValidateString(elemStrValue, "/" + elemPath, node.Validation, node.CompiledPattern, node.ErrorInfo, errors);
                                 }
                                 else if (elemFieldType != 0 && elemFieldType != FieldTypes.Padding && elemFieldType != FieldTypes.Bits && elemFieldType != FieldTypes.Enum)
                                 {
                                     double elemValue = BinaryFieldValidator.ExtractNumericAsDouble(elemProp, elemFieldType);
-                                    BinaryFieldValidator.ValidateNumeric(elemValue, "/" + elemPath, node.Validation, errors);
+                                    BinaryFieldValidator.ValidateNumeric(elemValue, "/" + elemPath, node.Validation, node.ErrorInfo, errors);
                                 }
                             }
                         }
@@ -415,7 +415,7 @@ public class BinaryContractSchema
                     if (node.Validation is not null)
                     {
                         string strValue = prop.GetString();
-                        BinaryFieldValidator.ValidateString(strValue, "/" + node.Name, node.Validation, node.CompiledPattern, errors);
+                        BinaryFieldValidator.ValidateString(strValue, "/" + node.Name, node.Validation, node.CompiledPattern, node.ErrorInfo, errors);
                     }
                     break;
                 }
@@ -498,7 +498,7 @@ public class BinaryContractSchema
                     if (node.Validation is not null)
                     {
                         double numValue = BinaryFieldValidator.ExtractNumericAsDouble(scalarProp, fieldType);
-                        BinaryFieldValidator.ValidateNumeric(numValue, "/" + node.Name, node.Validation, errors);
+                        BinaryFieldValidator.ValidateNumeric(numValue, "/" + node.Name, node.Validation, node.ErrorInfo, errors);
                     }
                     break;
             }
@@ -589,12 +589,12 @@ public class BinaryContractSchema
                                         if (sfFieldType2 == FieldTypes.String)
                                         {
                                             string sfStrValue = sfProp.GetString();
-                                            BinaryFieldValidator.ValidateString(sfStrValue, "/" + sfPath, sf.Validation, sf.CompiledPattern, errors);
+                                            BinaryFieldValidator.ValidateString(sfStrValue, "/" + sfPath, sf.Validation, sf.CompiledPattern, sf.ErrorInfo, errors);
                                         }
                                         else if (sfFieldType2 != 0 && sfFieldType2 != FieldTypes.Padding && sfFieldType2 != FieldTypes.Bits && sfFieldType2 != FieldTypes.Enum)
                                         {
                                             double sfNumValue = BinaryFieldValidator.ExtractNumericAsDouble(sfProp, sfFieldType2);
-                                            BinaryFieldValidator.ValidateNumeric(sfNumValue, "/" + sfPath, sf.Validation, errors);
+                                            BinaryFieldValidator.ValidateNumeric(sfNumValue, "/" + sfPath, sf.Validation, sf.ErrorInfo, errors);
                                         }
                                     }
                                 }
@@ -630,12 +630,12 @@ public class BinaryContractSchema
                                     if (elemFieldType == FieldTypes.String)
                                     {
                                         string elemStrValue = elemProp.GetString();
-                                        BinaryFieldValidator.ValidateString(elemStrValue, "/" + elemPath, node.Validation, node.CompiledPattern, errors);
+                                        BinaryFieldValidator.ValidateString(elemStrValue, "/" + elemPath, node.Validation, node.CompiledPattern, node.ErrorInfo, errors);
                                     }
                                     else if (elemFieldType != 0 && elemFieldType != FieldTypes.Padding && elemFieldType != FieldTypes.Bits && elemFieldType != FieldTypes.Enum)
                                     {
                                         double elemValue = BinaryFieldValidator.ExtractNumericAsDouble(elemProp, elemFieldType);
-                                        BinaryFieldValidator.ValidateNumeric(elemValue, "/" + elemPath, node.Validation, errors);
+                                        BinaryFieldValidator.ValidateNumeric(elemValue, "/" + elemPath, node.Validation, node.ErrorInfo, errors);
                                     }
                                 }
                             }
@@ -679,7 +679,7 @@ public class BinaryContractSchema
                         if (node.Validation is not null)
                         {
                             string strValue = prop.GetString();
-                            BinaryFieldValidator.ValidateString(strValue, "/" + node.Name, node.Validation, node.CompiledPattern, errors);
+                            BinaryFieldValidator.ValidateString(strValue, "/" + node.Name, node.Validation, node.CompiledPattern, node.ErrorInfo, errors);
                         }
                         runningOffset += node.Size;
                         break;
@@ -757,7 +757,7 @@ public class BinaryContractSchema
                         if (node.Validation is not null)
                         {
                             double numValue = BinaryFieldValidator.ExtractNumericAsDouble(scalarProp, fieldType);
-                            BinaryFieldValidator.ValidateNumeric(numValue, "/" + node.Name, node.Validation, errors);
+                            BinaryFieldValidator.ValidateNumeric(numValue, "/" + node.Name, node.Validation, node.ErrorInfo, errors);
                         }
                         runningOffset += node.Size;
                         break;

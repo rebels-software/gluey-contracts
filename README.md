@@ -27,9 +27,9 @@ JSON bytes → Deserialize to objects → Validate → Map errors to ProblemDeta
 With Gluey.Contract:
 
 ```
-JSON bytes → Single pass: validate + index → access values on demand
-                       ↑                              ↑
-              zero allocation, schema-aware    exact JSON pointer paths
+Raw bytes → Single pass: validate + index → access values on demand
+                      ↑                              ↑
+             zero allocation, schema-aware    exact path tracking
 ```
 
 ### What you get
@@ -46,12 +46,13 @@ JSON bytes → Single pass: validate + index → access values on demand
 |---------|-------------|
 | `Gluey.Contract` | Core: schema model, parsed data interface, offset table, validation primitives |
 | `Gluey.Contract.Json` | JSON byte parser — validates and indexes JSON against a JSON Schema |
+| `Gluey.Contract.Binary` | Binary protocol parser — parses custom binary payloads against a JSON contract definition |
+| `Gluey.Contract.AspNetCore` | ASP.NET Core integration — model binder, ProblemDetails with JSON pointer paths |
 
 ### Planned
 
 | Package | Description |
 |---------|-------------|
-| `Gluey.Contract.AspNetCore` | ASP.NET Core integration — model binder, ProblemDetails with JSON pointer paths |
 | `Gluey.Contract.Protobuf` | Protobuf wire format parser |
 | `Gluey.Contract.Postgres` | PostgreSQL wire protocol reader |
 | `Gluey.Contract.Redis` | Redis RESP protocol reader |
@@ -227,9 +228,11 @@ Gluey.Contract (core)
   ├── ParseResult          — parsed properties + validation errors
   └── Validation errors    — code + path + message
         │
-        ├── Gluey.Contract.Json       — JSON byte parser using JSON Schema
-        ├── Gluey.Contract.Protobuf   — Protobuf parser (planned)
-        └── Gluey.Contract.Postgres   — PG wire protocol reader (planned)
+        ├── Gluey.Contract.Json         — JSON byte parser using JSON Schema
+        ├── Gluey.Contract.Binary       — Binary protocol parser using JSON contract definitions
+        ├── Gluey.Contract.AspNetCore   — ASP.NET Core model binder + ProblemDetails
+        ├── Gluey.Contract.Protobuf     — Protobuf parser (planned)
+        └── Gluey.Contract.Postgres     — PG wire protocol reader (planned)
 ```
 
 Each format package implements byte-reading against its wire format. The consuming code uses the same `ParsedProperty` interface regardless of format.
@@ -248,7 +251,14 @@ Gluey.Contract also works standalone — any .NET developer can use it with stan
 ### Installation
 
 ```sh
+# JSON schema validation
 dotnet add package Gluey.Contract.Json
+
+# Binary protocol parsing
+dotnet add package Gluey.Contract.Binary
+
+# ASP.NET Core integration
+dotnet add package Gluey.Contract.AspNetCore
 ```
 
 ## Contributing

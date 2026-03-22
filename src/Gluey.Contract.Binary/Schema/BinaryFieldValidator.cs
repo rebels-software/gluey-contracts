@@ -27,22 +27,20 @@ internal static class BinaryFieldValidator
     /// Validates a numeric field value against min/max constraints.
     /// </summary>
     internal static void ValidateNumeric(
-        double value, string path, ValidationRules rules, ErrorCollector errors)
+        double value, string path, ValidationRules rules, SchemaErrorInfo? errorInfo, ErrorCollector errors)
     {
         if (rules.Min is not null && value < rules.Min.Value)
         {
+            var code = ValidationErrorCode.MinimumExceeded;
             errors.Add(new ValidationError(
-                path,
-                ValidationErrorCode.MinimumExceeded,
-                ValidationErrorMessages.Get(ValidationErrorCode.MinimumExceeded)));
+                path, code, errorInfo?.Detail ?? ValidationErrorMessages.Get(code), errorInfo));
         }
 
         if (rules.Max is not null && value > rules.Max.Value)
         {
+            var code = ValidationErrorCode.MaximumExceeded;
             errors.Add(new ValidationError(
-                path,
-                ValidationErrorCode.MaximumExceeded,
-                ValidationErrorMessages.Get(ValidationErrorCode.MaximumExceeded)));
+                path, code, errorInfo?.Detail ?? ValidationErrorMessages.Get(code), errorInfo));
         }
     }
 
@@ -50,30 +48,27 @@ internal static class BinaryFieldValidator
     /// Validates a string field value against minLength, maxLength, and pattern constraints.
     /// </summary>
     internal static void ValidateString(
-        string value, string path, ValidationRules rules, Regex? compiledPattern, ErrorCollector errors)
+        string value, string path, ValidationRules rules, Regex? compiledPattern, SchemaErrorInfo? errorInfo, ErrorCollector errors)
     {
         if (rules.MinLength is not null && value.Length < rules.MinLength.Value)
         {
+            var code = ValidationErrorCode.MinLengthExceeded;
             errors.Add(new ValidationError(
-                path,
-                ValidationErrorCode.MinLengthExceeded,
-                ValidationErrorMessages.Get(ValidationErrorCode.MinLengthExceeded)));
+                path, code, errorInfo?.Detail ?? ValidationErrorMessages.Get(code), errorInfo));
         }
 
         if (rules.MaxLength is not null && value.Length > rules.MaxLength.Value)
         {
+            var code = ValidationErrorCode.MaxLengthExceeded;
             errors.Add(new ValidationError(
-                path,
-                ValidationErrorCode.MaxLengthExceeded,
-                ValidationErrorMessages.Get(ValidationErrorCode.MaxLengthExceeded)));
+                path, code, errorInfo?.Detail ?? ValidationErrorMessages.Get(code), errorInfo));
         }
 
         if (compiledPattern is not null && !compiledPattern.IsMatch(value))
         {
+            var code = ValidationErrorCode.PatternMismatch;
             errors.Add(new ValidationError(
-                path,
-                ValidationErrorCode.PatternMismatch,
-                ValidationErrorMessages.Get(ValidationErrorCode.PatternMismatch)));
+                path, code, errorInfo?.Detail ?? ValidationErrorMessages.Get(code), errorInfo));
         }
     }
 
