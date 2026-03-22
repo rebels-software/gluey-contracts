@@ -28,7 +28,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetBoolean_ReturnsTrue_ForByte0x01()
     {
         var buffer = new byte[] { 0x01 };
-        var prop = new ParsedProperty(buffer, 0, 1, "/flag", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 1, "/flag", BinaryFormat, LittleEndian, 0);
 
         prop.GetBoolean().Should().BeTrue();
     }
@@ -37,7 +37,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetBoolean_ReturnsFalse_ForByte0x00()
     {
         var buffer = new byte[] { 0x00 };
-        var prop = new ParsedProperty(buffer, 0, 1, "/flag", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 1, "/flag", BinaryFormat, LittleEndian, 0);
 
         prop.GetBoolean().Should().BeFalse();
     }
@@ -46,7 +46,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetInt32_ReadsLittleEndian4Bytes()
     {
         var buffer = new byte[] { 0x2A, 0x00, 0x00, 0x00 };
-        var prop = new ParsedProperty(buffer, 0, 4, "/val", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 4, "/val", BinaryFormat, LittleEndian, 0);
 
         prop.GetInt32().Should().Be(42);
     }
@@ -55,7 +55,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetInt32_ReadsBigEndian4Bytes()
     {
         var buffer = new byte[] { 0x00, 0x00, 0x00, 0x2A };
-        var prop = new ParsedProperty(buffer, 0, 4, "/val", BinaryFormat, BigEndian);
+        var prop = new ParsedProperty(buffer, 0, 4, "/val", BinaryFormat, BigEndian, 0);
 
         prop.GetInt32().Should().Be(42);
     }
@@ -64,7 +64,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetInt32_ReadsLittleEndian2Bytes()
     {
         var buffer = new byte[] { 0x2A, 0x00 };
-        var prop = new ParsedProperty(buffer, 0, 2, "/val", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 2, "/val", BinaryFormat, LittleEndian, 0);
 
         prop.GetInt32().Should().Be(42);
     }
@@ -73,7 +73,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetInt32_Reads1ByteSigned()
     {
         var buffer = new byte[] { 0xFE };
-        var prop = new ParsedProperty(buffer, 0, 1, "/val", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 1, "/val", BinaryFormat, LittleEndian, 0);
 
         prop.GetInt32().Should().Be(-2);
     }
@@ -82,7 +82,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetInt64_ReadsLittleEndian8Bytes()
     {
         var buffer = BitConverter.GetBytes(123456789L);
-        var prop = new ParsedProperty(buffer, 0, 8, "/val", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 8, "/val", BinaryFormat, LittleEndian, 0);
 
         prop.GetInt64().Should().Be(123456789L);
     }
@@ -92,7 +92,7 @@ public class ParsedPropertyFormatTests
     {
         var buffer = new byte[8];
         BinaryPrimitives.WriteInt64BigEndian(buffer, 123456789L);
-        var prop = new ParsedProperty(buffer, 0, 8, "/val", BinaryFormat, BigEndian);
+        var prop = new ParsedProperty(buffer, 0, 8, "/val", BinaryFormat, BigEndian, 0);
 
         prop.GetInt64().Should().Be(123456789L);
     }
@@ -102,7 +102,7 @@ public class ParsedPropertyFormatTests
     {
         var buffer = new byte[8];
         BinaryPrimitives.WriteDoubleLittleEndian(buffer, 3.14);
-        var prop = new ParsedProperty(buffer, 0, 8, "/val", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 8, "/val", BinaryFormat, LittleEndian, 0);
 
         prop.GetDouble().Should().BeApproximately(3.14, 0.001);
     }
@@ -112,7 +112,7 @@ public class ParsedPropertyFormatTests
     {
         var buffer = new byte[8];
         BinaryPrimitives.WriteDoubleBigEndian(buffer, 3.14);
-        var prop = new ParsedProperty(buffer, 0, 8, "/val", BinaryFormat, BigEndian);
+        var prop = new ParsedProperty(buffer, 0, 8, "/val", BinaryFormat, BigEndian, 0);
 
         prop.GetDouble().Should().BeApproximately(3.14, 0.001);
     }
@@ -121,7 +121,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetString_DecodesUtf8Bytes()
     {
         var buffer = Encoding.UTF8.GetBytes("hello");
-        var prop = new ParsedProperty(buffer, 0, buffer.Length, "/val", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, buffer.Length, "/val", BinaryFormat, LittleEndian, 0);
 
         prop.GetString().Should().Be("hello");
     }
@@ -130,7 +130,7 @@ public class ParsedPropertyFormatTests
     public void BinaryGetDecimal_ThrowsNotSupportedException()
     {
         var buffer = new byte[16];
-        var prop = new ParsedProperty(buffer, 0, 16, "/val", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 16, "/val", BinaryFormat, LittleEndian, 0);
 
         var act = () => prop.GetDecimal();
 
@@ -151,7 +151,7 @@ public class ParsedPropertyFormatTests
     {
         // 3-byte truncated int32 read with sign extension (little-endian)
         var buffer = new byte[] { 0x01, 0x02, 0x03 };
-        var prop = new ParsedProperty(buffer, 0, 3, "/val", BinaryFormat, LittleEndian);
+        var prop = new ParsedProperty(buffer, 0, 3, "/val", BinaryFormat, LittleEndian, 0);
 
         // LE 3 bytes: fill=0x00 (MSB span[2]=0x03, no sign), (0x00 << 24) | (0x03 << 16) | (0x02 << 8) | 0x01 = 197121
         prop.GetInt32().Should().Be(197121);
