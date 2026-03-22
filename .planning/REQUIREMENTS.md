@@ -69,7 +69,7 @@
 - [x] **PACK-01**: Gluey.Contract.Binary NuGet package targeting net9.0 and net10.0
 - [x] **PACK-02**: CI pipeline matching Gluey.Contract.Json (build, test, pack)
 - [x] **PACK-03**: README with usage examples (load contract, parse payload, access values)
-- [ ] **PACK-04**: High code coverage with unit and integration tests
+- [x] **PACK-04**: High code coverage with unit and integration tests
 - [x] **PACK-05**: InternalsVisibleTo for test project
 
 ## v2 Requirements
@@ -146,7 +146,7 @@
 | PACK-01 | Phase 7 | Complete |
 | PACK-02 | Phase 7 | Complete |
 | PACK-03 | Phase 7 | Complete |
-| PACK-04 | Phase 7 | Pending |
+| PACK-04 | Phase 7 | Complete |
 | PACK-05 | Phase 7 | Complete |
 
 **Coverage:**
