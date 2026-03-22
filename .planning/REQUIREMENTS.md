@@ -66,11 +66,11 @@
 
 ### Packaging
 
-- [ ] **PACK-01**: Gluey.Contract.Binary NuGet package targeting net9.0 and net10.0
-- [ ] **PACK-02**: CI pipeline matching Gluey.Contract.Json (build, test, pack)
-- [ ] **PACK-03**: README with usage examples (load contract, parse payload, access values)
+- [x] **PACK-01**: Gluey.Contract.Binary NuGet package targeting net9.0 and net10.0
+- [x] **PACK-02**: CI pipeline matching Gluey.Contract.Json (build, test, pack)
+- [x] **PACK-03**: README with usage examples (load contract, parse payload, access values)
 - [ ] **PACK-04**: High code coverage with unit and integration tests
-- [ ] **PACK-05**: InternalsVisibleTo for test project
+- [x] **PACK-05**: InternalsVisibleTo for test project
 
 ## v2 Requirements
 
@@ -143,11 +143,11 @@
 | VALD-03 | Phase 6 | Complete |
 | VALD-04 | Phase 6 | Complete |
 | VALD-05 | Phase 6 | Complete |
-| PACK-01 | Phase 7 | Pending |
-| PACK-02 | Phase 7 | Pending |
-| PACK-03 | Phase 7 | Pending |
+| PACK-01 | Phase 7 | Complete |
+| PACK-02 | Phase 7 | Complete |
+| PACK-03 | Phase 7 | Complete |
 | PACK-04 | Phase 7 | Pending |
-| PACK-05 | Phase 7 | Pending |
+| PACK-05 | Phase 7 | Complete |
 
 **Coverage:**
 - v1 requirements: 43 total
