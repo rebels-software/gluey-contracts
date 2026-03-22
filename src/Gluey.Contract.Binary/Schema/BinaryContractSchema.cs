@@ -94,15 +94,11 @@ public class BinaryContractSchema
     /// When this method returns <c>true</c>, contains the loaded <see cref="BinaryContractSchema"/>.
     /// When <c>false</c>, contains <c>null</c>.
     /// </param>
-    /// <param name="registry">
-    /// Optional <see cref="SchemaRegistry"/> for future cross-schema reference support.
-    /// </param>
-    /// <param name="options">
-    /// Optional <see cref="SchemaOptions"/> for configuring validation behavior.
-    /// </param>
+    /// <param name="registry">Reserved for future cross-schema reference support.</param>
+    /// <param name="options">Reserved for future validation behavior configuration.</param>
     /// <returns><c>true</c> if the schema was loaded successfully; otherwise <c>false</c>.</returns>
     public static bool TryLoad(ReadOnlySpan<byte> utf8Json, out BinaryContractSchema? schema,
-        SchemaRegistry? registry = null, SchemaOptions? options = null)
+        object? registry = null, object? options = null)
     {
         var errors = new ErrorCollector();
 
@@ -180,7 +176,7 @@ public class BinaryContractSchema
     /// Returns <c>null</c> if the input is not a valid binary contract. Never throws.
     /// </summary>
     public static BinaryContractSchema? Load(ReadOnlySpan<byte> utf8Json,
-        SchemaRegistry? registry = null, SchemaOptions? options = null)
+        object? registry = null, object? options = null)
     {
         return TryLoad(utf8Json, out var schema, registry, options) ? schema : null;
     }
@@ -191,7 +187,7 @@ public class BinaryContractSchema
     /// Attempts to load a binary contract schema from a JSON string.
     /// </summary>
     public static bool TryLoad(string json, out BinaryContractSchema? schema,
-        SchemaRegistry? registry = null, SchemaOptions? options = null)
+        object? registry = null, object? options = null)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
         return TryLoad(bytes, out schema, registry, options);
@@ -202,7 +198,7 @@ public class BinaryContractSchema
     /// Returns <c>null</c> if the input is not a valid binary contract. Never throws.
     /// </summary>
     public static BinaryContractSchema? Load(string json,
-        SchemaRegistry? registry = null, SchemaOptions? options = null)
+        object? registry = null, object? options = null)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
         return Load(bytes, registry, options);

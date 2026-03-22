@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Gluey.Contract.Binary.Dto;
 
 namespace Gluey.Contract.Binary.Schema;
@@ -121,6 +122,9 @@ internal static class BinaryContractLoader
 
             // Validation
             Validation = MapValidation(dto.Validation),
+            CompiledPattern = dto.Validation?.Pattern is not null
+                ? new Regex(dto.Validation.Pattern, RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))
+                : null,
 
             // Extensions
             ErrorInfo = MapErrorInfo(dto.XError),

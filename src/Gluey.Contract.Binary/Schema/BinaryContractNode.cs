@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.RegularExpressions;
+
 namespace Gluey.Contract.Binary.Schema;
 
 // -- Supporting records --
@@ -96,6 +98,9 @@ internal sealed class BinaryContractNode
 
     /// <summary>Per-field validation rules (min, max, pattern, etc.).</summary>
     internal ValidationRules? Validation { get; init; }
+
+    /// <summary>Pre-compiled regex for pattern validation. Compiled at load time for performance.</summary>
+    internal Regex? CompiledPattern { get; init; }
 
     // -- Extensions --
 
