@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
@@ -6,16 +6,16 @@
     <OutputType>Library</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Gluey.Contract</RootNamespace>
-    <AssemblyName>Gluey.Contract</AssemblyName>
-    <Version>1.2.0</Version>
+    <RootNamespace>Gluey.Contract.Binary</RootNamespace>
+    <AssemblyName>Gluey.Contract.Binary</AssemblyName>
+    <Version>1.0.0</Version>
 
     <!-- NuGet Package -->
-    <PackageId>Gluey.Contract</PackageId>
+    <PackageId>Gluey.Contract.Binary</PackageId>
     <Authors>Gluey Contributors</Authors>
-    <Description>Zero-allocation, single-pass validation and indexing of raw bytes against a schema</Description>
+    <Description>Binary format driver for Gluey.Contract</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageTags>json;schema;validation;zero-allocation;high-performance</PackageTags>
+    <PackageTags>binary;protocol;validation;zero-allocation;high-performance</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/rebels/Gluey.Contracts</RepositoryUrl>
@@ -29,15 +29,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Gluey.Contract.Tests" />
-    <InternalsVisibleTo Include="Gluey.Contract.Json" />
-    <InternalsVisibleTo Include="Gluey.Contract.Json.Tests" />
-    <InternalsVisibleTo Include="Gluey.Contract.Binary" />
     <InternalsVisibleTo Include="Gluey.Contract.Binary.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\..\README.md" Pack="true" PackagePath="\" />
+    <ProjectReference Include="..\Gluey.Contract\Gluey.Contract.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
     <None Include="$(MSBuildThisFileDirectory)..\..\assets\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 

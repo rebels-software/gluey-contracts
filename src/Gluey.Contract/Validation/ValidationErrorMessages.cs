@@ -96,6 +96,15 @@ internal static class ValidationErrorMessages
         // Structural errors
         Messages[(int)ValidationErrorCode.InvalidJson] = "JSON is structurally invalid.";
 
+        // Binary contract errors
+        Messages[(int)ValidationErrorCode.InvalidKind] = "Contract kind is missing or not 'binary'.";
+        Messages[(int)ValidationErrorCode.CyclicDependency] = "Cyclic dependency detected in field chain.";
+        Messages[(int)ValidationErrorCode.MissingRoot] = "Contract has no root field.";
+        Messages[(int)ValidationErrorCode.SharedParent] = "Multiple fields depend on the same parent field.";
+        Messages[(int)ValidationErrorCode.OverlappingBits] = "Bit sub-fields overlap or exceed container size.";
+        Messages[(int)ValidationErrorCode.MissingSize] = "Field is missing a required size declaration.";
+        Messages[(int)ValidationErrorCode.InvalidReference] = "Reference points to a non-existent field.";
+
         // Sentinel
         Messages[(int)ValidationErrorCode.TooManyErrors] = "Too many validation errors; remaining errors have been truncated.";
     }

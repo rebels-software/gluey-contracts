@@ -1,6 +1,7 @@
 # Build outputs
 bin/
 obj/
+.artifacts/
 
 # IDE
 .vs/
@@ -12,3 +13,7 @@ BenchmarkDotNet.Artifacts/
 
 # Claude Code
 .claude/
+CLAUDE.md
+
+# GSD planning
+.planning/
