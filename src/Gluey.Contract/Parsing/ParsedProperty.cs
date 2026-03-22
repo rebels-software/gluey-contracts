@@ -310,16 +310,10 @@ public readonly struct ParsedProperty
         // Binary path
         if (_fieldType == FieldTypes.Enum)
         {
-            // Enum label: lazy dictionary lookup
-            if (_enumValues is not null)
-            {
-                // Read raw value as string key
-                string key = _buffer[_offset].ToString();
-                if (_enumValues.TryGetValue(key, out string? label))
-                    return label;
-                return key; // unmapped: return numeric as string per D-08
-            }
-            return _buffer[_offset].ToString();
+            string key = _buffer[_offset].ToString();
+            if (_enumValues is not null && _enumValues.TryGetValue(key, out string? label))
+                return label;
+            return key; // unmapped or no values table: return numeric as string per D-08
         }
         if (_fieldType == FieldTypes.String || _fieldType == FieldTypes.None)
         {
@@ -626,9 +620,7 @@ public readonly struct ParsedProperty
         FieldTypes.Boolean => "boolean",
         FieldTypes.String => "string",
         FieldTypes.Enum => "enum",
-        FieldTypes.Bits => "bits",
-        FieldTypes.Padding => "padding",
-        _ => "unknown"
+        _ => _fieldType.ToString()
     };
 
     /// <summary>

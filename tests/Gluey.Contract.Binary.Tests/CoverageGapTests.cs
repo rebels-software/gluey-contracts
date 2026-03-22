@@ -1294,6 +1294,180 @@ internal sealed class CoverageGapTests
     }
 
     // ================================================================
+    // ParsedProperty — GetXxx throw branches for mismatched sizes
+    // ================================================================
+
+    [Test]
+    public void GetUInt16_ThreeByteField_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "little",
+              "fields": { "v": { "type": "uint16", "size": 3 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2, 3 })!.Value;
+
+        var act = () => result["v"].GetUInt16();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*3 bytes*");
+    }
+
+    [Test]
+    public void GetUInt16_ThreeByteField_BigEndian_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "big",
+              "fields": { "v": { "type": "uint16", "size": 3 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2, 3 })!.Value;
+
+        var act = () => result["v"].GetUInt16();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*3 bytes*");
+    }
+
+    [Test]
+    public void GetUInt32_FiveByteField_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "little",
+              "fields": { "v": { "type": "uint32", "size": 5 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2, 3, 4, 5 })!.Value;
+
+        var act = () => result["v"].GetUInt32();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*5 bytes*");
+    }
+
+    [Test]
+    public void GetUInt32_FiveByteField_BigEndian_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "big",
+              "fields": { "v": { "type": "uint32", "size": 5 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2, 3, 4, 5 })!.Value;
+
+        var act = () => result["v"].GetUInt32();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*5 bytes*");
+    }
+
+    [Test]
+    public void GetInt32_FiveByteField_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "little",
+              "fields": { "v": { "type": "int32", "size": 5 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2, 3, 4, 5 })!.Value;
+
+        var act = () => result["v"].GetInt32();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*5 bytes*");
+    }
+
+    [Test]
+    public void GetInt32_FiveByteField_BigEndian_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "big",
+              "fields": { "v": { "type": "int32", "size": 5 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2, 3, 4, 5 })!.Value;
+
+        var act = () => result["v"].GetInt32();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*5 bytes*");
+    }
+
+    [Test]
+    public void GetInt64_FiveByteField_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "little",
+              "fields": { "v": { "type": "int32", "size": 5 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2, 3, 4, 5 })!.Value;
+
+        var act = () => result["v"].GetInt64();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*5 bytes*");
+    }
+
+    [Test]
+    public void GetInt64_FiveByteField_BigEndian_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "big",
+              "fields": { "v": { "type": "int32", "size": 5 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2, 3, 4, 5 })!.Value;
+
+        var act = () => result["v"].GetInt64();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*5 bytes*");
+    }
+
+    [Test]
+    public void GetDouble_TwoByteField_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "little",
+              "fields": { "v": { "type": "float32", "size": 2 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2 })!.Value;
+
+        var act = () => result["v"].GetDouble();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*2 bytes*");
+    }
+
+    [Test]
+    public void GetDouble_TwoByteField_BigEndian_Throws()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "big",
+              "fields": { "v": { "type": "float64", "size": 2 } }
+            }
+            """)!;
+
+        using var result = schema.Parse(new byte[] { 1, 2 })!.Value;
+
+        var act = () => result["v"].GetDouble();
+        act.Should().Throw<InvalidOperationException>().WithMessage("*2 bytes*");
+    }
+
+    // ================================================================
     // ParsedProperty — GetUInt32 3-byte LE path (line 466)
     // ================================================================
 
@@ -1368,6 +1542,46 @@ internal sealed class CoverageGapTests
         using var result = schema.Parse(new byte[] { 0x80 })!.Value;
 
         result["v"].GetInt64().Should().Be(-128);
+    }
+
+    // ================================================================
+    // ParsedProperty — GetInt64 8-byte paths (lines 498, 508)
+    // ================================================================
+
+    [Test]
+    public void GetInt64_EightBytes_LittleEndian_ReadsCorrectly()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "little",
+              "fields": { "v": { "type": "int32", "size": 8 } }
+            }
+            """)!;
+        var payload = new byte[8];
+        BinaryPrimitives.WriteInt64LittleEndian(payload, -9999999999L);
+
+        using var result = schema.Parse(payload)!.Value;
+
+        result["v"].GetInt64().Should().Be(-9999999999L);
+    }
+
+    [Test]
+    public void GetInt64_EightBytes_BigEndian_ReadsCorrectly()
+    {
+        var schema = BinaryContractSchema.Load("""
+            {
+              "kind": "binary",
+              "endianness": "big",
+              "fields": { "v": { "type": "int32", "size": 8 } }
+            }
+            """)!;
+        var payload = new byte[8];
+        BinaryPrimitives.WriteInt64BigEndian(payload, -9999999999L);
+
+        using var result = schema.Parse(payload)!.Value;
+
+        result["v"].GetInt64().Should().Be(-9999999999L);
     }
 
     // ================================================================
