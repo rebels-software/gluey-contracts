@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Gluey.Contract</RootNamespace>
     <AssemblyName>Gluey.Contract</AssemblyName>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
 
     <!-- NuGet Package -->
     <PackageId>Gluey.Contract</PackageId>
