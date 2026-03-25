@@ -563,11 +563,10 @@ public class ContractValidationTests
     // ── ContractBody properties ──────────────────────────────────────────
 
     [Test]
-    public void ContractBody_Headers_ThrowsWhenNotSet()
+    public void ContractBody_Headers_ReturnsNullWhenNotSet()
     {
         var body = new ContractBody();
-        var act = () => { var _ = body.Headers; };
-        act.Should().Throw<InvalidOperationException>().WithMessage("*Headers*");
+        body.Headers.Should().BeNull();
     }
 
     [Test]

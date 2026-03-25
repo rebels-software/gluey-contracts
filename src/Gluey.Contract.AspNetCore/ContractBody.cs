@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.ComponentModel;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,7 +89,12 @@ public class ContractBody : IDisposable
     public ParseResult Result => _result;
 
     /// <summary>The request headers. Available for reading request metadata without needing <c>HttpContext</c>.</summary>
-    public IHeaderDictionary Headers => _headers ?? throw new InvalidOperationException("Headers not available.");
+    /// <remarks>
+    /// Returns <c>null</c> when headers have not been set (e.g., during MVC model validation).
+    /// ASP.NET MVC's <c>ObjectModelValidator</c> walks all public properties — throwing here
+    /// would cause a 500 on every MVC controller action that accepts a <see cref="ContractBody"/> parameter.
+    /// </remarks>
+    public IHeaderDictionary? Headers => _headers;
 
     /// <summary>Sets the headers reference. Used internally during binding.</summary>
     internal void SetHeaders(IHeaderDictionary headers) => _headers = headers;
